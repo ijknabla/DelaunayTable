@@ -1,6 +1,6 @@
 
 add_library(
     DelaunayTable SHARED
-    DelaunayTable.c
+    DelaunayTable.IO.c
     DelaunayTable.Container.c
 )
