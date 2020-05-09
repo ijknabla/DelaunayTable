@@ -52,7 +52,7 @@ extern void List__remove(
     List__element__delete_function* element__delete
 );
 
-extern void List__pop(
+extern bool List__pop(
     List* this,
     List__element__delete_function* element__delete
 );

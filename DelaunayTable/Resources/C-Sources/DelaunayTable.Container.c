@@ -101,10 +101,13 @@ void List__remove(
     FREE(node);
 }
 
-void List__pop(
+bool List__pop(
     List* this,
     List__element__delete_function* const element__delete
 ) {
-    if (List__empty(this)) return;
+    if (List__empty(this)) {
+        return false;
+    }
     List__remove(this, this->first, element__delete);
+    return true;
 }
