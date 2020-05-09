@@ -8,5 +8,15 @@
 
 
 int main(int argc, char** argv) {
+
+    HashMap* map = HashMap__new();
+    if (!map) {return EXIT_FAILURE;}
+
+    HashMap__delete(
+        map,
+        NULL,
+        NULL
+    );
+
     return EXIT_SUCCESS;
 }

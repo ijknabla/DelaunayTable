@@ -111,3 +111,71 @@ bool List__pop(
     List__remove(this, this->first, element__delete);
     return true;
 }
+
+
+
+/// ## HashMap methods
+/// ### static functions for HashMap
+static inline bool Map__Pair__empty(
+    const Map__Pair* const pair
+) {
+    return pair->key == NULL;
+}
+
+/// ### extern functions for HashMap
+HashMap* HashMap__new(
+) {
+    HashMap* this = (HashMap*) malloc(sizeof(HashMap));
+    if (!this) {goto error;}
+
+    this->size = 0;
+    this->max_size = (2 << 6) - 1;
+    this->pairs = (Map__Pair*) CALLOC(
+        this->max_size, sizeof(Map__Pair)
+    );
+    if (!this->pairs) {goto error;}
+
+    return this;
+
+error:
+
+    if (this) {
+        if (this->pairs) {
+            FREE(this->pairs);
+        }
+        FREE(this);
+    }
+
+    return NULL;
+}
+
+/*
+void HashMap__clear(
+    HashMap* const this,
+    Map__key__delete_function* const key__delete,
+    Map__value__delete_function* const value__delete
+) {
+    return;
+}
+*/
+
+void HashMap__delete(
+    HashMap* const this,
+    Map__key__delete_function* const key__delete,
+    Map__value__delete_function* const value__delete
+) {
+    for (size_t i = 0 ; i < this->max_size ; i++) {
+        const Map__Pair pair = this->pairs[i];
+        if (!Map__Pair__empty(&pair)) {
+            if (key__delete && pair.key) {
+                key__delete(pair.key);
+            }
+            if (value__delete && pair.value) {
+                value__delete(pair.value);
+            }
+        }
+    }
+
+    FREE(this->pairs);
+    FREE(this);
+}
