@@ -1,5 +1,16 @@
 
 add_library(
     DelaunayTable SHARED
-    DelaunayTable.c
+    DelaunayTable.IO.c
+    DelaunayTable.Container.c
+)
+
+target_include_directories(
+    DelaunayTable
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+add_subdirectory(
+  test
 )
