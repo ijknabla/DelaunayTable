@@ -122,6 +122,12 @@ static inline bool Map__Pair__empty(
     return pair->key == NULL;
 }
 
+static inline bool Map__Pair__deleted(
+    const Map__Pair* const pair
+) {
+    return Map__Pair__empty(pair) && pair->value;
+}
+
 /// ### extern functions for HashMap
 HashMap* HashMap__new(
 ) {
@@ -178,4 +184,30 @@ void HashMap__delete(
 
     FREE(this->pairs);
     FREE(this);
+}
+
+bool HashMap__get(
+    const HashMap* const this,
+    const Map__key key,
+    Map__value* const value,
+    Map__key__hash_function* const key__hash,
+    Map__key__equality_function* const key__equality
+) {
+    size_t hash = key__hash(key);
+
+    for (size_t i = 0 ; i < this->max_size ; i++) {
+        const size_t index = (hash + i) % this->max_size;
+        const Map__Pair pair = this->pairs[index];
+
+        if (Map__Pair__deleted(&pair)) {continue;}
+        if (Map__Pair__empty(&pair)) {break;}
+
+        if (key__equality(key, pair.key)) {
+            *value = pair.value;
+            return true;
+        }
+    }
+
+    *value = NULL;
+    return false;
 }
