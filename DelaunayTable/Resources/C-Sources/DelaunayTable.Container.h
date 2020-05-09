@@ -127,19 +127,19 @@ extern HashMap* HashMap__new(
 );
 
 extern void HashMap__clear(
-    HashMap* self,
+    HashMap* this,
     Map__key__delete_function* key__delete,
     Map__value__delete_function* value__delete
 );
 
 extern void HashMap__delete(
-    HashMap* self,
+    HashMap* this,
     Map__key__delete_function* key__delete,
     Map__value__delete_function* value__delete
 );
 
 extern bool HashMap__get(
-    const HashMap* self,
+    const HashMap* this,
     const Map__key key,
     Map__value* value,
     Map__key__hash_function* key__hash,
@@ -147,7 +147,7 @@ extern bool HashMap__get(
 );
 
 extern int HashMap__set(
-    HashMap* self,
+    HashMap* this,
     const Map__key key,
     const Map__value value,
     Map__key__copy_function* key__copy,
@@ -159,7 +159,7 @@ extern int HashMap__set(
 );
 
 extern bool HashMap__remove(
-    HashMap* self,
+    HashMap* this,
     const Map__key key,
     Map__key__delete_function* key__delete,
     Map__key__hash_function* key__hash,
