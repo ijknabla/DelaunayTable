@@ -2,6 +2,13 @@
 #include "DelaunayTable.Container.h"
 
 
+void List__initialize(
+    List* const this
+) {
+    this->first = NULL;
+    this->last = NULL;
+}
+
 void List__clear(
     List* const this,
     List__element__delete_function* const element__delete
@@ -18,8 +25,7 @@ void List__clear(
         node = next;
     }
 
-    this->first = NULL;
-    this->last = NULL;
+    List__initialize(this);
 }
 
 int List__append(

@@ -27,6 +27,10 @@ typedef struct{
 /// ## List methods
 #define List__INITIALIZER {NULL, NULL}
 
+extern void List__initialize(
+    List* this
+);
+
 extern void List__clear(
     List* this,
     List__element__delete_function* element__delete
