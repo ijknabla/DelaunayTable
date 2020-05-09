@@ -122,7 +122,7 @@ static inline bool Map__Pair__empty(
     return pair->key == NULL;
 }
 
-static inline bool Map__Pair__deleted(
+static inline bool Map__Pair__removed(
     const Map__Pair* const pair
 ) {
     return Map__Pair__empty(pair) && pair->value;
@@ -265,7 +265,7 @@ bool HashMap__get(
         const size_t index = (hash + i) % this->max_size;
         const Map__Pair pair = this->pairs[index];
 
-        if (Map__Pair__deleted(&pair)) {continue;}
+        if (Map__Pair__removed(&pair)) {continue;}
         if (Map__Pair__empty(&pair)) {break;}
 
         if (key__equality(key, pair.key)) {
