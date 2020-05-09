@@ -129,7 +129,7 @@ static inline bool Map__Pair__removed(
 }
 
 static Map__Pair* HashMap__find_pair(
-    const size_t max_size,
+    const size_t capacity,
     Map__Pair* const pairs,
     const Map__key key,
     const bool skip_removed,
@@ -138,8 +138,8 @@ static Map__Pair* HashMap__find_pair(
 ) {
     size_t hash = key__hash(key);
 
-    for (size_t i = 0 ; i < max_size ; i++) {
-        const size_t index = (hash + i) % max_size;
+    for (size_t i = 0 ; i < capacity ; i++) {
+        const size_t index = (hash + i) % capacity;
         Map__Pair* const pair = &pairs[index];
 
         if (skip_removed && Map__Pair__removed(pair)) {continue;}
@@ -151,7 +151,7 @@ static Map__Pair* HashMap__find_pair(
 }
 
 static int HashMap__set_to_pairs(
-    const size_t max_size,
+    const size_t capacity,
     Map__Pair* const pairs,
     const Map__key key,
     const Map__value value,
@@ -186,8 +186,8 @@ static int HashMap__set_to_pairs(
 
     size_t hash = key__hash(key);
 
-    for (size_t i = 0 ; i < max_size ; i++) {
-        const size_t index = (hash + i) % max_size;
+    for (size_t i = 0 ; i < capacity ; i++) {
+        const size_t index = (hash + i) % capacity;
         Map__Pair* const pair = &pairs[index];
 
         if (Map__Pair__empty(pair)) {
@@ -224,9 +224,9 @@ HashMap* HashMap__new(
     if (!this) {goto error;}
 
     this->size = 0;
-    this->max_size = (2 << 6) - 1;
+    this->capacity = (2 << 6) - 1;
     this->pairs = (Map__Pair*) CALLOC(
-        this->max_size, sizeof(Map__Pair)
+        this->capacity, sizeof(Map__Pair)
     );
     if (!this->pairs) {goto error;}
 
@@ -259,7 +259,7 @@ void HashMap__delete(
     Map__key__delete_function* const key__delete,
     Map__value__delete_function* const value__delete
 ) {
-    for (size_t i = 0 ; i < this->max_size ; i++) {
+    for (size_t i = 0 ; i < (this->capacity) ; i++) {
         const Map__Pair pair = this->pairs[i];
         if (!Map__Pair__empty(&pair)) {
             if (key__delete && pair.key) {
@@ -283,7 +283,7 @@ bool HashMap__get(
     Map__key__equality_function* const key__equality
 ) {
     Map__Pair* pair = HashMap__find_pair(
-        this->max_size,
+        this->capacity,
         this->pairs,
         key,
         true,  // skip_removed
@@ -314,7 +314,7 @@ int HashMap__set(
     Map__Pair* pair;
 
     pair = HashMap__find_pair(
-        this->max_size,
+        this->capacity,
         this->pairs,
         key,
         true,  // skip_removed
@@ -323,7 +323,7 @@ int HashMap__set(
     );
     if (Map__Pair__empty(pair)) {
         pair = HashMap__find_pair(
-            this->max_size,
+            this->capacity,
             this->pairs,
             key,
             false,  // not skip_removed

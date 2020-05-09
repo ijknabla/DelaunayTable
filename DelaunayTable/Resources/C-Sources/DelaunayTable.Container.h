@@ -118,7 +118,7 @@ typedef void Map__value__delete_function (
  */
 typedef struct {
     size_t size;
-    size_t max_size;
+    size_t capacity;
     Map__Pair* pairs;
 } HashMap;
 
