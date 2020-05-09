@@ -128,6 +128,27 @@ static inline bool Map__Pair__removed(
     return Map__Pair__empty(pair) && pair->value;
 }
 
+static Map__Pair* HashMap__find_pair(
+    const HashMap* const this,
+    const Map__key key,
+    const bool skip_removed,
+    Map__key__hash_function* const key__hash,
+    Map__key__equality_function* const key__equality
+) {
+    size_t hash = key__hash(key);
+
+    for (size_t i = 0 ; i < this->max_size ; i++) {
+        const size_t index = (hash + i) % this->max_size;
+        Map__Pair* const pair = &this->pairs[index];
+
+        if (skip_removed && Map__Pair__removed(pair)) {continue;}
+
+        if (Map__Pair__empty(pair)) {return pair;}
+        if (key__equality(key, pair->key)) {return pair;}
+    }
+    return NULL;
+}
+
 static int HashMap__set_to_pairs(
     const size_t max_size,
     Map__Pair* const pairs,
