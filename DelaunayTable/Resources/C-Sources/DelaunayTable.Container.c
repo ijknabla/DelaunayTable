@@ -128,6 +128,72 @@ static inline bool Map__Pair__deleted(
     return Map__Pair__empty(pair) && pair->value;
 }
 
+static int HashMap__set_to_pairs(
+    const size_t max_size,
+    Map__Pair* const pairs,
+    const Map__key key,
+    const Map__value value,
+    Map__key__copy_function* const key__copy,
+    Map__key__delete_function* const key__delete,
+    Map__key__hash_function* const key__hash,
+    Map__key__equality_function* const key__equality,
+    Map__value__copy_function* const value__copy,
+    Map__value__delete_function* const value__delete
+) {
+    Map__key new_key;
+    if (key__copy) {
+        new_key = key__copy(key);
+        if (!new_key) {return FAILURE;}
+    } else {
+        new_key = key;
+    }
+
+    Map__value new_value;
+    if (value__copy && value) {
+        new_value = value__copy(value);
+        if (!new_value) {
+            if (key__delete && key__copy) {
+                key__delete(new_key);
+            }
+            return FAILURE;
+        }
+    } else {
+        new_value = value;
+    }
+
+    size_t hash = key__hash(key);
+
+    for (size_t i = 0 ; i < max_size ; i++) {
+        const size_t index = (hash + i) % max_size;
+        Map__Pair* const pair = &pairs[index];
+
+        if (Map__Pair__empty(pair)) {
+            pair->key = new_key;
+            pair->value = new_value;
+            return SUCCESS;
+        } else if (key__equality(key, pair->key)) {
+            if (key__delete) {
+                key__delete(pair->key);
+            }
+            if (value__delete && pair->value) {
+                value__delete(pair->value);
+            }
+            pair->key = new_key;
+            pair->value = new_value;
+            return SUCCESS;
+        }
+    }
+
+    if (key__delete && key__copy) {
+        key__delete(new_key);
+    }
+    if (value__delete && value__copy) {
+        value__delete(new_value);
+    }
+    return FAILURE;
+}
+
+
 /// ### extern functions for HashMap
 HashMap* HashMap__new(
 ) {
