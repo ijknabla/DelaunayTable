@@ -299,3 +299,83 @@ bool HashMap__get(
         return false;
     }
 }
+
+int HashMap__set(
+    HashMap* const this,
+    const Map__key key,
+    const Map__value value,
+    Map__key__copy_function* const key__copy,
+    Map__key__delete_function* const key__delete,
+    Map__key__hash_function* const key__hash,
+    Map__key__equality_function* const key__equality,
+    Map__value__copy_function* const value__copy,
+    Map__value__delete_function* const value__delete
+) {
+    Map__Pair* pair;
+
+    pair = HashMap__find_pair(
+        this->max_size,
+        this->pairs,
+        key,
+        true,  // skip_removed
+        key__hash,
+        key__equality
+    );
+    if (Map__Pair__empty(pair)) {
+        pair = HashMap__find_pair(
+            this->max_size,
+            this->pairs,
+            key,
+            false,  // not skip_removed
+            key__hash,
+            key__equality
+        );
+    }
+
+    // try
+    bool key_exists;
+    if (Map__Pair__empty(pair)) {
+        if (key__copy) {
+            pair->key = key__copy(key);
+            if (!pair->key) {
+                goto error;
+            }
+        } else {
+            pair->key = key;
+        }
+        key_exists = false;
+    } else {
+        key_exists = true;
+    }
+
+    Map__value new_value;
+    if (value__copy && value) {
+        new_value = value__copy(value);
+        if (!new_value) {
+            goto error;
+        }
+    } else {
+        new_value = value;
+    }
+    // end try
+
+    this->size++;
+
+    if (value__delete && key_exists && pair->value) {
+        value__delete(pair->value);
+    }
+    pair->value = new_value;
+
+    return SUCCESS;
+
+error:
+
+    if (!key_exists) {
+        if (key__delete && pair->key) {
+            key__delete(pair->key);
+        }
+        pair->key = NULL;
+    }
+
+    return FAILURE;
+}
