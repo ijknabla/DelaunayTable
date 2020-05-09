@@ -280,21 +280,19 @@ bool HashMap__get(
     Map__key__hash_function* const key__hash,
     Map__key__equality_function* const key__equality
 ) {
-    size_t hash = key__hash(key);
+    Map__Pair* pair = HashMap__find_pair(
+        this,
+        key,
+        true, // skip_removed
+        key__hash,
+        key__equality
+    );
 
-    for (size_t i = 0 ; i < this->max_size ; i++) {
-        const size_t index = (hash + i) % this->max_size;
-        const Map__Pair pair = this->pairs[index];
-
-        if (Map__Pair__removed(&pair)) {continue;}
-        if (Map__Pair__empty(&pair)) {break;}
-
-        if (key__equality(key, pair.key)) {
-            *value = pair.value;
-            return true;
-        }
+    if (!Map__Pair__empty(pair)) {
+        *value = pair->value;
+        return true;
+    } else {
+        *value = NULL;
+        return false;
     }
-
-    *value = NULL;
-    return false;
 }
