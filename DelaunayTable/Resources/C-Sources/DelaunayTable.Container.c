@@ -150,6 +150,51 @@ static Map__Pair* HashMap__find_pair(
     return NULL;
 }
 
+int HashMap__reserve(
+    HashMap* const this,
+    const size_t capacity,
+    Map__key__hash_function* const key__hash,
+    Map__key__equality_function* const key__equality
+) {
+    if ( capacity < (this->size) ) {
+        return FAILURE;
+    }
+
+    Map__Pair* new_pairs = (Map__Pair*) CALLOC(
+        capacity, sizeof(Map__Pair)
+    );
+    if (!new_pairs) {
+        return FAILURE;
+    }
+
+    for (size_t i = 0 ; i < (this->capacity) ; i++) {
+        const Map__Pair* const old_pair = &this->pairs[i];
+
+        if (Map__Pair__empty(old_pair)) {
+            continue;
+        }
+
+        Map__Pair* const new_pair = HashMap__find_pair(
+            capacity,
+            new_pairs,
+            old_pair->key,
+            true,  // skip_removed
+            key__hash,
+            key__equality
+        );
+
+        new_pair->key   = old_pair->key;
+        new_pair->value = old_pair->value;
+    }
+
+    FREE(this->pairs);
+
+    this->capacity = capacity;
+    this->pairs = new_pairs;
+
+    return SUCCESS;
+}
+
 static int HashMap__set_to_pairs(
     const size_t capacity,
     Map__Pair* const pairs,
@@ -312,6 +357,22 @@ int HashMap__set(
     Map__value__delete_function* const value__delete
 ) {
     Map__Pair* pair;
+
+    size_t new_size = this->size+1;
+
+    if ( (new_size*2) > (this->capacity) ) {
+        size_t new_capacity = (
+            (this->capacity + 1) * 2 - 1
+        );
+        if (HashMap__reserve(
+            this,
+            new_capacity,
+            key__hash,
+            key__equality
+        )) {
+            return FAILURE;
+        }
+    }
 
     pair = HashMap__find_pair(
         this->capacity,
