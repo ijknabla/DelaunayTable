@@ -382,3 +382,38 @@ error:
 
     return FAILURE;
 }
+
+bool HashMap__remove(
+    HashMap* this,
+    const Map__key key,
+    Map__key__delete_function* key__delete,
+    Map__key__hash_function* key__hash,
+    Map__key__equality_function* key__equality,
+    Map__value__delete_function* value__delete
+) {
+    Map__Pair* const pair = HashMap__find_pair(
+        this->capacity,
+        this->pairs,
+        key,
+        true,  // skip_removed
+        key__hash,
+        key__equality
+    );
+
+    if (Map__Pair__empty(pair)) {
+        return false;
+    }
+
+    if (key__delete && pair->key) {
+        key__delete(pair->key);
+    }
+    if (value__delete && pair->value) {
+        value__delete(pair->value);
+    }
+
+    pair->key = NULL;
+    pair->value = (void*) -1;
+
+    this->size--;
+    return true;
+}
