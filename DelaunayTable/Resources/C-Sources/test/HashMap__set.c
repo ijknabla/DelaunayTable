@@ -35,6 +35,26 @@ bool size_t__equality(
     return *size0 == *size1;
 }
 
+static void TestHashMap__clear(
+    TestHashMap* this
+) {
+    HashMap__clear(
+        this,
+        &size_t__delete,
+        &size_t__delete
+    );
+}
+
+static void TestHashMap__delete(
+    TestHashMap* this
+) {
+    HashMap__delete(
+        this,
+        &size_t__delete,
+        &size_t__delete
+    );
+}
+
 static bool TestHashMap__get(
     const TestHashMap* const this,
     const size_t key,
@@ -90,16 +110,6 @@ static bool TestHashMap__remove(
     );
 }
 
-static void TestHashMap__delete(
-    TestHashMap* this
-) {
-    HashMap__delete(
-        this,
-        &size_t__delete,
-        &size_t__delete
-    );
-}
-
 
 int main(int argc, char** argv) {
 
@@ -142,6 +152,10 @@ int main(int argc, char** argv) {
             }
         }
     }
+
+    TestHashMap__clear(map);
+
+    assert( (map->size) == 0 );
 
     TestHashMap__delete(map);
 
