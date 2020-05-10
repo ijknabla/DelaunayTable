@@ -7,7 +7,7 @@ class ExternalDelaunayTable
   function constructor
     extends Modelica.Icons.Function;
     output ExternalDelaunayTable externalDelaunayTable;
-  external"C" externalDelaunayTable = DelaunayTable__open(
+  external "C" externalDelaunayTable = DelaunayTable__open(
     ) annotation (
       IncludeDirectory = "modelica://DelaunayTable/Resources/C-Sources",
       Include = "#include \"DelaunayTable.c\""
@@ -17,7 +17,7 @@ class ExternalDelaunayTable
   function destructor
     extends Modelica.Icons.Function;
     input ExternalDelaunayTable externalDelaunayTable;
-  external"C" DelaunayTable__close(
+  external "C" DelaunayTable__close(
       externalDelaunayTable
     ) annotation (
       IncludeDirectory = "modelica://DelaunayTable/Resources/C-Sources",
