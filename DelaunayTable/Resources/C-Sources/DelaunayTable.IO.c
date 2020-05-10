@@ -8,6 +8,12 @@ DelaunayTable* DelaunayTable__open(
     const char* tableName,
     const char* fileName
 ) {
+    ModelicaFormatMessage(
+        "tableName = %s\n", tableName
+    );
+    ModelicaFormatMessage(
+        "fileName = %s\n", fileName
+    );
     return NULL;
 }
 
