@@ -35,6 +35,29 @@ bool size_t__equality(
     return *size0 == *size1;
 }
 
+static bool TestHashMap__get(
+    const TestHashMap* const this,
+    const size_t key,
+    size_t* const value
+) {
+    size_t* value_;
+    bool result = HashMap__get(
+        this,
+        &key,
+        &value_,
+        size_t__hash,
+        size_t__equality
+    );
+
+    if (result) {
+        *value = *value_;
+    } else {
+        *value = 0;
+    }
+
+    return result;
+}
+
 static int TestHashMap__set(
     TestHashMap* const this,
     const size_t key,
