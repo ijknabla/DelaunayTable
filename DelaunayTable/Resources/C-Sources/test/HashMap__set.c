@@ -76,6 +76,20 @@ static int TestHashMap__set(
     );
 }
 
+static bool TestHashMap__remove(
+    TestHashMap* const this,
+    const size_t key
+) {
+    return HashMap__remove(
+        this,
+        (Map__key) &key,
+        (Map__key__delete_function*) size_t__delete,
+        (Map__key__hash_function*) size_t__hash,
+        (Map__key__equality_function*) size_t__equality,
+        (Map__value__delete_function*) size_t__delete
+    );
+}
+
 static void TestHashMap__delete(
     TestHashMap* this
 ) {
