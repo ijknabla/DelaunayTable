@@ -222,32 +222,41 @@ error:
     return NULL;
 }
 
-/*
 void HashMap__clear(
     HashMap* const this,
     Map__key__delete_function* const key__delete,
     Map__value__delete_function* const value__delete
 ) {
+    for (size_t i = 0 ; i < (this->capacity) ; i++) {
+        Map__Pair* const pair = &this->pairs[i];
+        if (!Map__Pair__empty(pair)) {
+            if (key__delete && pair->key) {
+                key__delete(pair->key);
+            }
+            if (value__delete && pair->value) {
+                value__delete(pair->value);
+            }
+        }
+
+        pair->key = NULL;
+        pair->value = NULL;
+    }
+
+    this->size = 0;
+
     return;
 }
-*/
 
 void HashMap__delete(
     HashMap* const this,
     Map__key__delete_function* const key__delete,
     Map__value__delete_function* const value__delete
 ) {
-    for (size_t i = 0 ; i < (this->capacity) ; i++) {
-        const Map__Pair pair = this->pairs[i];
-        if (!Map__Pair__empty(&pair)) {
-            if (key__delete && pair.key) {
-                key__delete(pair.key);
-            }
-            if (value__delete && pair.value) {
-                value__delete(pair.value);
-            }
-        }
-    }
+    HashMap__clear(
+        this,
+        key__delete,
+        value__delete
+    );
 
     FREE(this->pairs);
     FREE(this);
