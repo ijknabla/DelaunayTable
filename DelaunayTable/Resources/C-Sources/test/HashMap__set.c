@@ -106,15 +106,35 @@ int main(int argc, char** argv) {
     TestHashMap* map = HashMap__new();
     if (!map) {return EXIT_FAILURE;}
 
-    for (size_t i = 0 ; i < N ; i+=2) {
-        if (TestHashMap__set(map, i, i)) {
+    for (size_t i = 0 ; i*2 < N ; i++) {
+        assert( (map->size) == i);
+
+        if (TestHashMap__set(map, i*2, i*2)) {
             return EXIT_FAILURE;
         }
 
         for (size_t j = 0 ; j < N ; j++) {
             size_t value;
 
-            if ( (j % 2 == 0) && (j <= i) ) {
+            if ( (j % 2 == 0) && (j <= i*2) ) {
+                assert(  TestHashMap__get(map, j, &value) );
+                assert(  value == j );
+            } else {
+                assert( !TestHashMap__get(map, j, &value) );
+            }
+        }
+    }
+
+    for (size_t i = 0 ; i*4 < N ; i++) {
+        assert( (map->size) == (N/2 - i) );
+
+        assert (  TestHashMap__remove(map, i*4) );
+        assert ( !TestHashMap__remove(map, i*4) );
+
+        for (size_t j = 0 ; j < N ; j++) {
+            size_t value;
+
+            if ( (j % 2 == 0) && !(j % 4 == 0 && j <= i*4) ) {
                 assert(  TestHashMap__get(map, j, &value) );
                 assert(  value == j );
             } else {
