@@ -43,10 +43,10 @@ static bool TestHashMap__get(
     size_t* value_;
     bool result = HashMap__get(
         this,
-        &key,
-        &value_,
-        size_t__hash,
-        size_t__equality
+        (Map__key) &key,
+        (Map__value*) &value_,
+        (Map__key__hash_function*) size_t__hash,
+        (Map__key__equality_function*) size_t__equality
     );
 
     if (result) {
@@ -95,6 +95,17 @@ int main(int argc, char** argv) {
     for (size_t i = 0 ; i < N ; i+=2) {
         if (TestHashMap__set(map, i, i)) {
             return EXIT_FAILURE;
+        }
+
+        for (size_t j = 0 ; j < N ; j++) {
+            size_t value;
+
+            if ( (j % 2 == 0) && (j <= i) ) {
+                assert(  TestHashMap__get(map, j, &value) );
+                assert(  value == j );
+            } else {
+                assert( !TestHashMap__get(map, j, &value) );
+            }
         }
     }
 
