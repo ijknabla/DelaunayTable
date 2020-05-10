@@ -2,6 +2,7 @@
 #pragma once
 
 #include <stdlib.h>
+#include <stdnoreturn.h>
 
 
 #define MALLOC (malloc)
@@ -12,3 +13,7 @@
 #define FAILURE (-1)
 
 typedef struct{} DelaunayTable;
+
+/// # ModelicaUtilities.h
+extern           void ModelicaFormatMessage(const char *string, ...);
+extern _Noreturn void ModelicaFormatError(const char *string, ...);
