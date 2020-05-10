@@ -5,6 +5,8 @@
 
 
 DelaunayTable* DelaunayTable__open(
+    const char* tableName,
+    const char* fileName
 ) {
     return NULL;
 }

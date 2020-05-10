@@ -5,6 +5,8 @@
 
 
 extern DelaunayTable* DelaunayTable__open(
+    const char* tableName,
+    const char* fileName
 );
 
 extern void DelaunayTable__close(

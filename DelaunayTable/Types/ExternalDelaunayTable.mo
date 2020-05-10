@@ -6,8 +6,12 @@ class ExternalDelaunayTable
 
   function constructor
     extends Modelica.Icons.Function;
+    input String tableName "Table name";
+    input String fileName "File name";
     output ExternalDelaunayTable externalDelaunayTable;
   external "C" externalDelaunayTable = DelaunayTable__open(
+      tableName,
+      fileName
     ) annotation (
       IncludeDirectory = "modelica://DelaunayTable/Resources/C-Sources",
       Include = "#include \"DelaunayTable.c\""
