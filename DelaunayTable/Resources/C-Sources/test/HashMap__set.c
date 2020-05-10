@@ -7,16 +7,27 @@
 #define N 1024
 
 
+typedef HashMap TestHashMap;
+
+#define size_t__delete free
+
+static void TestHashMap__delete(
+    TestHashMap* this
+) {
+    HashMap__delete(
+        this,
+        &size_t__delete,
+        &size_t__delete
+    );
+}
+
+
 int main(int argc, char** argv) {
 
-    HashMap* map = HashMap__new();
+    TestHashMap* map = HashMap__new();
     if (!map) {return EXIT_FAILURE;}
 
-    HashMap__delete(
-        map,
-        NULL,
-        NULL
-    );
+    TestHashMap__delete(map);
 
     return EXIT_SUCCESS;
 }
