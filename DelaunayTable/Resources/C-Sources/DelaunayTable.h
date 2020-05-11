@@ -17,3 +17,12 @@ typedef struct{} DelaunayTable;
 /// # ModelicaUtilities.h
 extern           void ModelicaFormatMessage(const char *string, ...);
 extern _Noreturn void ModelicaFormatError(const char *string, ...);
+
+/// # macro for error
+#define MemoryError_format    "Memory allocation error at %s:%d\n"
+#define FileOpenError_format  "Can't open file %s at %s:%d\n"
+#define FileCloseError_format "Can't close file %s at %s:%d\n"
+
+#define raise_MemoryError              (ModelicaFormatError(MemoryError_format, __FILE__, __LINE__))
+#define raise_FileOpenError(fileName)  (ModelicaFormatError(FileOpenError_format, fileName, __FILE__, __LINE__))
+#define raise_FileCloseError(fileName) (ModelicaFormatError(FileCloseError_format, fileName, __FILE__, __LINE__))
