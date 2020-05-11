@@ -6,7 +6,8 @@
 
 extern DelaunayTable* DelaunayTable__open(
     const char* tableName,
-    const char* fileName
+    const char* fileName,
+    const int verbosity
 );
 
 extern void DelaunayTable__close(
@@ -17,5 +18,6 @@ extern double* readModelicaStandardTxtTableFormatV1(
     const char* tableName,
     const char* fileName,
     size_t* nRow,
-    size_t* nCol
+    size_t* nCol,
+    const int verbosity
 );

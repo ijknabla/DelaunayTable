@@ -6,9 +6,12 @@ block DelaunayTable
   parameter String tableName = "NoName";
   parameter String fileName = "NoName";
 
+  parameter Integer verbosity(min=0) = 0;
+
   Types.ExternalDelaunayTable table = Types.ExternalDelaunayTable(
     tableName = tableName,
-    fileName = fileName
+    fileName = fileName,
+    verbosity = verbosity
   );
 
 equation

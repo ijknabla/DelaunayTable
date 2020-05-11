@@ -8,10 +8,12 @@ class ExternalDelaunayTable
     extends Modelica.Icons.Function;
     input String tableName "Table name";
     input String fileName "File name";
+    input Integer verbosity "Verbosity {0: silent}";
     output ExternalDelaunayTable externalDelaunayTable;
   external "C" externalDelaunayTable = DelaunayTable__open(
       tableName,
-      fileName
+      fileName,
+      verbosity
     ) annotation (
       IncludeDirectory = "modelica://DelaunayTable/Resources/C-Sources",
       Include = "#include \"DelaunayTable.c\""

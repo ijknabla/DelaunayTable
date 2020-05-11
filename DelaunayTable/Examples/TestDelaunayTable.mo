@@ -7,7 +7,8 @@ model TestDelaunayTable
 
   DelaunayTable delaunayTable(
     tableName = "tableI2O1",
-    fileName = Files.loadResource("modelica://DelaunayTable/Resources/Data/Tables/singlePoint.txt")
+    fileName = Files.loadResource("modelica://DelaunayTable/Resources/Data/Tables/singlePoint.txt"),
+    verbosity = 100  // Very verbose!!!!!
   ) annotation(
     Placement(
       visible = true,
