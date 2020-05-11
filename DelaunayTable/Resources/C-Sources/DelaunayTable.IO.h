@@ -13,10 +13,9 @@ extern void DelaunayTable__close(
     DelaunayTable* this
 );
 
-extern int readModelicaStandardTxtTableFormatV1(
+extern double* readModelicaStandardTxtTableFormatV1(
     const char* tableName,
     const char* fileName,
     size_t* nRow,
-    size_t* nCol,
-    double** table
+    size_t* nCol
 );
