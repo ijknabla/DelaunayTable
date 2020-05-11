@@ -26,3 +26,10 @@ extern _Noreturn void ModelicaFormatError(const char *string, ...);
 #define raise_MemoryError              (ModelicaFormatError(MemoryError_format, __FILE__, __LINE__))
 #define raise_FileOpenError(fileName)  (ModelicaFormatError(FileOpenError_format, fileName, __FILE__, __LINE__))
 #define raise_FileCloseError(fileName) (ModelicaFormatError(FileCloseError_format, fileName, __FILE__, __LINE__))
+
+enum Verbosity {
+    Verbosity__quiet = 1,
+    Verbosity__info,
+    Verbosity__debug,
+    Verbosity__detail
+};

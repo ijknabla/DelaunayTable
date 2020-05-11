@@ -8,7 +8,7 @@
 DelaunayTable* DelaunayTable__open(
     const char* const tableName,
     const char* const fileName,
-    const int verbosity
+    const enum Verbosity verbosity
 ) {
     ModelicaFormatMessage(
         "tableName = %s\n", tableName
@@ -38,7 +38,7 @@ double* readModelicaStandardTxtTableFormatV1(
     const char* const fileName,
     size_t* const nRow,
     size_t* const nCol,
-    const int verbosity
+    const enum Verbosity verbosity
 ) {
     FILE* fp = fopen(fileName, "r");
     if (!fp) {raise_FileOpenError(fileName);}
