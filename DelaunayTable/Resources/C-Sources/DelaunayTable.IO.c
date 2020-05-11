@@ -43,6 +43,10 @@ double* readModelicaStandardTxtTableFormatV1(
     FILE* fp = fopen(fileName, "r");
     if (!fp) {raise_FileOpenError(fileName);}
 
+    if (verbosity > Verbosity__quiet) {
+        ModelicaFormatMessage("Successfully opened file \"%s\"\n", fileName);
+    }
+
     if (fclose(fp)) {raise_FileCloseError(fileName);}
 
     return NULL;
