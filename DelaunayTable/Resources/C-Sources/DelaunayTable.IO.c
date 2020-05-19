@@ -33,6 +33,21 @@ void DelaunayTable__close(
 ) {
 }
 
+typedef struct {
+    FILE* fp;
+    char* buffer;
+    size_t capacity;
+    size_t lineNO;
+} LineIterator;
+
+static void LineIterator__delete(
+    LineIterator* const this
+) {
+    if (this->buffer) {
+        FREE(this->buffer);
+    }
+}
+
 double* readModelicaStandardTxtTableFormatV1(
     const char* const tableName,
     const char* const fileName,
@@ -46,6 +61,10 @@ double* readModelicaStandardTxtTableFormatV1(
     if (verbosity > Verbosity__quiet) {
         ModelicaFormatMessage("Successfully opened file \"%s\"\n", fileName);
     }
+
+    LineIterator lineIterator = {fp, NULL, 0, 0};
+
+    LineIterator__delete(&lineIterator);
 
     if (fclose(fp)) {raise_FileCloseError(fileName);}
 
