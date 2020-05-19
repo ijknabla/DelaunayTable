@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdio.h>
 
+#define DEFAULT_BUFFER_SIZE 256
+
 
 DelaunayTable* DelaunayTable__open(
     const char* const tableName,
@@ -34,18 +36,32 @@ void DelaunayTable__close(
 }
 
 typedef struct {
+    const char* fileName;
     FILE* fp;
     char* buffer;
     size_t capacity;
     size_t lineNO;
 } LineIterator;
 
-static void LineIterator__delete(
+static void LineIterator__initialize(
+    LineIterator* const this,
+    const char* const fileName
+) {
+    if (!(this->fp = fopen(fileName, "r"))) {raise_FileOpenError(fileName);}
+    if (!(this->buffer = MALLOC(DEFAULT_BUFFER_SIZE))) {raise_MemoryError;}
+
+    this->fileName = fileName;
+    this->capacity = DEFAULT_BUFFER_SIZE;
+    this->lineNO = 0;
+}
+
+static void LineIterator__finalize(
     LineIterator* const this
 ) {
-    if (this->buffer) {
-        FREE(this->buffer);
+    if (this->fp) {
+        if (fclose(this->fp)) {raise_FileCloseError(this->fileName);}
     }
+    if (this->buffer) {FREE(this->buffer);}
 }
 
 double* readModelicaStandardTxtTableFormatV1(
@@ -55,18 +71,21 @@ double* readModelicaStandardTxtTableFormatV1(
     size_t* const nCol,
     const enum Verbosity verbosity
 ) {
-    FILE* fp = fopen(fileName, "r");
-    if (!fp) {raise_FileOpenError(fileName);}
+    LineIterator lineIterator = {NULL};
+    LineIterator__initialize(
+        &lineIterator,
+        fileName
+    );
 
     if (verbosity > Verbosity__quiet) {
         ModelicaFormatMessage("Successfully opened file \"%s\"\n", fileName);
     }
 
-    LineIterator lineIterator = {fp, NULL, 0, 0};
+    LineIterator__finalize(&lineIterator);
+    if (verbosity > Verbosity__quiet) {
+        ModelicaFormatMessage("Successfully closed file \"%s\"\n", fileName);
+    }
 
-    LineIterator__delete(&lineIterator);
-
-    if (fclose(fp)) {raise_FileCloseError(fileName);}
 
     return NULL;
 }
