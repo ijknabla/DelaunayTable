@@ -1,7 +1,9 @@
 
 #include "DelaunayTable.IO.h"
 
+#include <stdbool.h>
 #include <stddef.h>
+#include <string.h>
 #include <stdio.h>
 
 #define DEFAULT_BUFFER_SIZE 256
@@ -64,6 +66,40 @@ static void LineIterator__finalize(
     if (this->buffer) {FREE(this->buffer);}
 }
 
+static bool LineIterator__next(
+    LineIterator* const this
+) {
+    if (feof(this->fp)) {
+        return false;
+    }
+
+    size_t readed = 0;
+
+    while (true) {
+        fgets(
+            (this->buffer)  +readed,
+            (this->capacity)-readed,
+            this->fp);
+
+        if (ferror(this->fp)) {
+            clearerr(this->fp);
+            raise_FileReadError(this->fileName, (this->lineNO)+1);
+        }
+
+        if (strchr((this->buffer)+readed, '\n')) {
+            break;
+        } else {
+            readed  = (this->capacity)-1;
+            this->capacity *= 2;
+            if (!(this->buffer = REALLOC(this->buffer, this->capacity))) {raise_MemoryError;}
+        }
+    }
+
+    (this->lineNO)++;
+
+    return true;
+}
+
 double* readModelicaStandardTxtTableFormatV1(
     const char* const tableName,
     const char* const fileName,
@@ -79,6 +115,10 @@ double* readModelicaStandardTxtTableFormatV1(
 
     if (verbosity > Verbosity__quiet) {
         ModelicaFormatMessage("Successfully opened file \"%s\"\n", fileName);
+    }
+
+    while (LineIterator__next(&lineIterator)) {
+        ModelicaFormatMessage("\"%s\"\n", lineIterator.buffer);
     }
 
     LineIterator__finalize(&lineIterator);
