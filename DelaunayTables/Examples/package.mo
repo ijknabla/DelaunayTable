@@ -1,4 +1,4 @@
-within DelaunayTable;
+within DelaunayTables;
 
 package Examples
   extends Modelica.Icons.ExamplesPackage;

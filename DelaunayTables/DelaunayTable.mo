@@ -1,4 +1,4 @@
-within DelaunayTable;
+within DelaunayTables;
 
 block DelaunayTable
   extends Modelica.Blocks.Interfaces.MIMO;
