@@ -1,4 +1,4 @@
-within DelaunayTable;
+within DelaunayTables;
 
 package Types
   extends Modelica.Icons.TypesPackage;

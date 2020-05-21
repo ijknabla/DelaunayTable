@@ -1,4 +1,4 @@
-within DelaunayTable.Types;
+within DelaunayTables.Types;
 
 class ExternalDelaunayTable
 
@@ -9,7 +9,7 @@ class ExternalDelaunayTable
     output ExternalDelaunayTable externalDelaunayTable;
   external"C" externalDelaunayTable = DelaunayTable__open(
     ) annotation (
-      IncludeDirectory = "modelica://DelaunayTable/Resources/C-Sources",
+      IncludeDirectory = "modelica://DelaunayTables/Resources/C-Sources",
       Include = "#include \"DelaunayTable.c\""
     );
   end constructor;
@@ -20,7 +20,7 @@ class ExternalDelaunayTable
   external"C" DelaunayTable__close(
       externalDelaunayTable
     ) annotation (
-      IncludeDirectory = "modelica://DelaunayTable/Resources/C-Sources",
+      IncludeDirectory = "modelica://DelaunayTables/Resources/C-Sources",
       Include = "#include \"DelaunayTable.c\""
     );
   end destructor;
