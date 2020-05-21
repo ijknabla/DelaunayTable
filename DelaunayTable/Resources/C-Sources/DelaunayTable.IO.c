@@ -69,10 +69,6 @@ static void LineIterator__finalize(
 static bool LineIterator__next(
     LineIterator* const this
 ) {
-    if (feof(this->fp)) {
-        return false;
-    }
-
     size_t readed = 0;
 
     while (true) {
@@ -80,6 +76,10 @@ static bool LineIterator__next(
             (this->buffer)  +readed,
             (this->capacity)-readed,
             this->fp);
+
+        if (feof(this->fp)) {
+            return false;
+        }
 
         if (ferror(this->fp)) {
             clearerr(this->fp);
