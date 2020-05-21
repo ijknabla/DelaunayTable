@@ -129,6 +129,7 @@ double* readModelicaStandardTxtTableFormatV1(
     }
 
     while (LineIterator__next(&lineIterator)) {
+        removeCRLF(lineIterator.buffer);
         ModelicaFormatMessage("\"%s\"\n", lineIterator.buffer);
     }
 
