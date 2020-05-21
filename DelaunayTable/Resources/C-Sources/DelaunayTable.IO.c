@@ -100,6 +100,17 @@ static bool LineIterator__next(
     return true;
 }
 
+static void removeCRLF(char* buffer) {
+    const char* ci; char* co;
+    for(ci = co = buffer ; *ci ; ci++) {
+        if (*ci != '\r' && *ci != '\n') {
+            *co = *ci;
+            *co++;
+        }
+    }
+    *co = '\0';
+}
+
 double* readModelicaStandardTxtTableFormatV1(
     const char* const tableName,
     const char* const fileName,
