@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "DelaunayTable.h"
+#include "DelaunayTable.Common.h"
 
 #include <stdbool.h>
 #include <stddef.h>
