@@ -321,8 +321,8 @@ int HashMap__set(
     }
 
     // try
-    bool key_exists;
-    if (Map__Pair__empty(pair)) {
+    const bool key_already_exists = !Map__Pair__empty(pair);
+    if (!key_already_exists) {
         if (key__copy) {
             pair->key = key__copy(key);
             if (!pair->key) {
@@ -331,9 +331,6 @@ int HashMap__set(
         } else {
             pair->key = key;
         }
-        key_exists = false;
-    } else {
-        key_exists = true;
     }
 
     Map__value new_value;
@@ -349,7 +346,7 @@ int HashMap__set(
 
     this->size++;
 
-    if (value__delete && key_exists && pair->value) {
+    if (value__delete && key_already_exists && pair->value) {
         value__delete(pair->value);
     }
     pair->value = new_value;
@@ -358,7 +355,7 @@ int HashMap__set(
 
 error:
 
-    if (!key_exists) {
+    if (!key_already_exists) {
         if (key__delete && pair->key) {
             key__delete(pair->key);
         }
