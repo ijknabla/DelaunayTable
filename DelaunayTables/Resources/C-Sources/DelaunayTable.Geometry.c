@@ -67,3 +67,60 @@ static void LAPACK__dgemv(
         &incy
     );
 }
+
+static int calculate_divisionRatioMatrix(
+    const size_t nDim,
+    const double* const* const polygon,  // double[nDim+1][nDim]
+          double*        const matrix    // double[nDim, nDim]
+) {
+    /*
+     * # Matrix size constants
+     * Since the dimensions of the output matrix are limited to [nDim, nDim],
+     * n, m, lda and lwork all have the same value.
+     */
+
+    int status = SUCCESS;
+
+    int*    ipiv = NULL;  // pivot indices (result discarded)
+    double* work = NULL;  // work address for dgetri (result discarded)
+
+    if (!(ipiv = (int*) MALLOC(nDim * sizeof(int)))) {
+        status = FAILURE; goto finally;
+    }
+    if (!(work = (double*) MALLOC(nDim * sizeof(double)))) {
+        status = FAILURE; goto finally;
+    }
+
+    for (size_t jRow = 0 ; jRow < nDim ; jRow++)
+    for (size_t iCol = 0 ; iCol < nDim ; iCol++) {
+        matrix[nDim*jRow+iCol] = polygon[jRow+1][iCol] - polygon[0][iCol];
+    }
+
+    LAPACK__dgetrf(
+        nDim,     // m
+        nDim,     // n
+        matrix,   // a
+        nDim,     // lda
+        ipiv,     // ipiv
+        &status   // info
+    );
+    if (status) goto finally;
+
+    LAPACK__dgetri(
+        nDim,     // n
+        matrix,   // a
+        nDim,     // lda
+        ipiv,     // ipiv
+        work,     // work
+        nDim,     // lwork
+        &status   // info
+    );
+    if (status) goto finally;
+
+finally:
+
+    if (ipiv) FREE(ipiv);
+    if (work) FREE(work);
+
+    return status;
+}
