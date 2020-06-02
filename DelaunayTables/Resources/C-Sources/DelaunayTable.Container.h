@@ -7,6 +7,41 @@
 #include <stddef.h>
 
 
+/** # Sequcence
+ * basic data types and APIs
+ */
+typedef void* Sequence__element;
+typedef void Sequence__element__delete_function (Sequence__element);
+
+
+/** # Vector
+ * variable size array
+ */
+typedef struct {
+    size_t size;
+    size_t capacity;
+    void* data;
+} Vector;
+
+/// ## Vector methods
+extern Vector* Vector__new(
+    const size_t capacity,
+    const size_t sizeofElement
+);
+
+extern void Vector__delete(
+    Vector* this
+);
+
+extern int Vector__append(
+    Vector* this,
+    const Sequence__element element,
+    const size_t sizeofElement
+);
+
+#define Vector__data(this, type) ( (type*) (this)->data )
+
+
 /** # List
  * bidirectional linked list
  */
@@ -77,7 +112,6 @@ static inline size_t List__size(
     }
     return size;
 }
-
 
 
 /**

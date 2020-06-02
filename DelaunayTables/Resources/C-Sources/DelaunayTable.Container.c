@@ -1,7 +1,104 @@
 
 #include "DelaunayTable.Container.h"
 
+#include <string.h>
 
+
+/// # Vector
+/// ## Vector static functions
+static int Vector__reserve(
+    Vector* this,
+    const size_t capacity,
+    const size_t sizeofElement
+) {
+    const size_t old_capacity = this->capacity;
+
+    if (capacity < (this->size)) {return FAILURE;}
+
+    void* const new_data = (void*) REALLOC(
+        this->data, capacity*sizeofElement
+    );
+    if (!new_data) {return FAILURE;}
+
+    if (old_capacity < capacity) {
+        memset(
+            new_data + old_capacity * sizeofElement,
+            0,
+            (capacity - old_capacity) * sizeofElement
+        );
+    }
+
+    this->capacity = capacity;
+    this->data = new_data;
+
+    return SUCCESS;
+}
+
+/// ## Vector methods
+Vector* Vector__new(
+    const size_t capacity,
+    const size_t sizeofElement
+) {
+    if (capacity == 0) {return NULL;}
+
+    Vector* const this = (Vector*) MALLOC(sizeof(Vector));
+    if (!this) {goto error;}
+
+    this->data = (void*) CALLOC(capacity, sizeofElement);
+    if (!(this->data)) {goto error;}
+
+    this->size     = 0;
+    this->capacity = capacity;
+
+    return this;
+
+error:
+
+    if (this) {
+        if (this->data) {
+            FREE(this->data);
+        }
+        FREE(this);
+    }
+
+    return NULL;
+}
+
+void Vector__delete(
+    Vector* const this
+) {
+    FREE(this->data);
+    FREE(this);
+}
+
+extern int Vector__append(
+    Vector* const this,
+    const Sequence__element element,
+    const size_t sizeofElement
+) {
+    int status = SUCCESS;
+
+    const size_t new_size = this->size + 1;
+
+    if (new_size > this->capacity) {
+        status = Vector__reserve(
+            this, (this->capacity) * 2, sizeofElement
+        );
+        if (status) {return status;}
+    }
+
+    memcpy(
+        this->data + (this->size) * sizeofElement,
+        element,
+        sizeofElement
+    );
+
+    this->size = new_size;
+
+    return status;
+}
+
+/// ## List methods
 void List__initialize(
     List* const this
 ) {
@@ -111,7 +208,6 @@ bool List__pop(
     List__remove(this, this->first, element__delete);
     return true;
 }
-
 
 
 /// ## HashMap methods
