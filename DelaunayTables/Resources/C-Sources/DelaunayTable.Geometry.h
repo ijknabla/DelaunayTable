@@ -4,6 +4,7 @@
 #include "DelaunayTable.Common.h"
 
 #include <math.h>
+#include <stdbool.h>
 
 
 /// relative tolerance for `double__compare`
@@ -45,3 +46,19 @@ static inline int double__compare(
 /// # Number of vertices
 static inline size_t nVerticesInFace   (const size_t nDim) {return nDim  ;}
 static inline size_t nVerticesInPolygon(const size_t nDim) {return nDim+1;}
+
+
+/// # Geometry functions
+extern int divisionRatioFromPolygonVertices(
+    const size_t nDim,
+    const double* const* polygon,  // double[nDim+1][nDim]
+    const double*        point,    // double[nDim]
+          double*        ratio     // double[nDim+1]
+);
+
+extern int insideCircumsphereOfPolygon(
+    const size_t nDim,
+    const double* const* polygon,  // double[nDim+1][nDim]
+    const double*        point,    // double[nDim]
+    bool* inside
+);
