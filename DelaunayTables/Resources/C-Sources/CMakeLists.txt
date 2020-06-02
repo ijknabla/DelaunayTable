@@ -2,6 +2,7 @@
 add_library(
     DelaunayTable SHARED
     DelaunayTable.IO.c
+    DelaunayTable.Geometry.c
     DelaunayTable.Container.c
 )
 
@@ -12,5 +13,5 @@ target_include_directories(
 )
 
 add_subdirectory(
-  test
+    test
 )
