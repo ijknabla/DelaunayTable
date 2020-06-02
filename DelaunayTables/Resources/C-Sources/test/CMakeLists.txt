@@ -42,3 +42,18 @@ add_test(
     NAME "divisionRatio.2D"
     COMMAND $<TARGET_FILE:testDivisionRatio__2D>
 )
+
+
+add_executable(
+    testDivisionRatio__4D
+    divisionRatio__4D.c
+)
+target_link_libraries(
+    testDivisionRatio__4D
+    DelaunayTable
+)
+
+add_test(
+    NAME "divisionRatio.4D"
+    COMMAND $<TARGET_FILE:testDivisionRatio__4D>
+)
