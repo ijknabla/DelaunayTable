@@ -62,3 +62,43 @@ extern int insideCircumsphereOfPolygon(
     const double*        point,    // double[nDim]
     bool* inside
 );
+
+
+/// # LAPACK external routines
+typedef int    LAPACK_INTEGER;
+typedef double LAPACK_DOUBLE_PRECISION;
+typedef char   LAPACK_CHARACTER;
+
+
+extern void dgetrf_(
+    LAPACK_INTEGER*          M,
+    LAPACK_INTEGER*          N,
+    LAPACK_DOUBLE_PRECISION* A,
+    LAPACK_INTEGER*          LDA,
+    LAPACK_INTEGER*          IPIV,
+    LAPACK_INTEGER*          INFO
+);
+
+extern void dgetri_(
+    LAPACK_INTEGER*          N,
+    LAPACK_DOUBLE_PRECISION* A,
+    LAPACK_INTEGER*          LDA,
+    LAPACK_INTEGER*          IPIV,
+    LAPACK_DOUBLE_PRECISION* WORK,
+    LAPACK_INTEGER*          LWORK,
+    LAPACK_INTEGER*          INFO
+);
+
+extern void dgemv_(
+    LAPACK_CHARACTER*        TRANS,
+    LAPACK_INTEGER*          M,
+    LAPACK_INTEGER*          N,
+    LAPACK_DOUBLE_PRECISION* ALPHA,
+    LAPACK_DOUBLE_PRECISION* A,
+    LAPACK_INTEGER*          LDA,
+    LAPACK_DOUBLE_PRECISION* X,
+    LAPACK_INTEGER*          INCX,
+    LAPACK_DOUBLE_PRECISION* BETA,
+    LAPACK_DOUBLE_PRECISION* Y,
+    LAPACK_INTEGER*          INCY
+);
