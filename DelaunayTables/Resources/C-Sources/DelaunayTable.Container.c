@@ -1,117 +1,102 @@
 
 #include "DelaunayTable.Container.h"
 
+#include <string.h>
 
-void List__initialize(
-    List* const this
+
+/// # Vector
+/// ## Vector static functions
+static int Vector__reserve(
+    Vector* this,
+    const size_t capacity,
+    const size_t sizeofElement
 ) {
-    this->first = NULL;
-    this->last = NULL;
+    const size_t old_capacity = this->capacity;
+
+    if (capacity < (this->size)) {return FAILURE;}
+
+    void* const new_data = (void*) REALLOC(
+        this->data, capacity*sizeofElement
+    );
+    if (!new_data) {return FAILURE;}
+
+    if (old_capacity < capacity) {
+        memset(
+            new_data + old_capacity * sizeofElement,
+            0,
+            (capacity - old_capacity) * sizeofElement
+        );
+    }
+
+    this->capacity = capacity;
+    this->data = new_data;
+
+    return SUCCESS;
 }
 
-void List__clear(
-    List* const this,
-    List__element__delete_function* const element__delete
+/// ## Vector methods
+Vector* Vector__new(
+    const size_t capacity,
+    const size_t sizeofElement
 ) {
-    ListNode* node = this->first;
-    while (node != NULL) {
-        ListNode* next = node->next;
+    if (capacity == 0) {return NULL;}
 
-        if (element__delete && node->element) {
-            element__delete(node->element);
+    Vector* const this = (Vector*) MALLOC(sizeof(Vector));
+    if (!this) {goto error;}
+
+    this->data = (void*) CALLOC(capacity, sizeofElement);
+    if (!(this->data)) {goto error;}
+
+    this->size     = 0;
+    this->capacity = capacity;
+
+    return this;
+
+error:
+
+    if (this) {
+        if (this->data) {
+            FREE(this->data);
         }
-        FREE(node);
-
-        node = next;
+        FREE(this);
     }
 
-    List__initialize(this);
+    return NULL;
 }
 
-int List__append(
-    List* const this,
-    const List__element element
+void Vector__delete(
+    Vector* const this
 ) {
-    ListNode* new_node = (ListNode*) MALLOC(
-        sizeof(ListNode)
+    FREE(this->data);
+    FREE(this);
+}
+
+extern int Vector__append(
+    Vector* const this,
+    const Sequence__element element,
+    const size_t sizeofElement
+) {
+    int status = SUCCESS;
+
+    const size_t new_size = this->size + 1;
+
+    if (new_size > this->capacity) {
+        status = Vector__reserve(
+            this, (this->capacity) * 2, sizeofElement
+        );
+        if (status) {return status;}
+    }
+
+    memcpy(
+        this->data + (this->size) * sizeofElement,
+        element,
+        sizeofElement
     );
-    if (new_node == NULL) return FAILURE;
 
-    new_node->element = element;
-    new_node->prev = this->last;
-    new_node->next = NULL;
+    this->size = new_size;
 
-    if (List__empty(this)) {
-        this->first       = new_node;
-        this->last        = new_node;
-    } else {
-        this->last->next  = new_node;
-        this->last        = new_node;
-    }
-
-    return SUCCESS;
+    return status;
 }
-
-int List__insert(
-    List* const this,
-    const List__element element
-) {
-    ListNode* new_node = (ListNode*) MALLOC(
-        sizeof(ListNode)
-    );
-    if (new_node == NULL) return FAILURE;
-
-    new_node->element = element;
-    new_node->prev = NULL;
-    new_node->next = this->first;
-
-    if (List__empty(this)) {
-        this->first       = new_node;
-        this->last        = new_node;
-    } else {
-        this->first->prev = new_node;
-        this->first       = new_node;
-    }
-
-    return SUCCESS;
-}
-
-void List__remove(
-    List* const this,
-    ListNode* const node,
-    List__element__delete_function* const element__delete
-) {
-    if (this->first == this->last) {
-        this->first = NULL;
-        this->last  = NULL;
-    } else if (node == this->first) {
-        this->first = node->next;
-        this->first->prev = NULL;
-    } else if (node == this->last) {
-        this->last = node->prev;
-        this->last->next = NULL;
-    } else {
-        node->next->prev = node->prev;
-        node->prev->next = node->next;
-    }
-
-    if (element__delete && node->element) {
-        element__delete(node->element);
-    }
-    FREE(node);
-}
-
-bool List__pop(
-    List* this,
-    List__element__delete_function* const element__delete
-) {
-    if (List__empty(this)) {
-        return false;
-    }
-    List__remove(this, this->first, element__delete);
-    return true;
-}
-
 
 
 /// ## HashMap methods
