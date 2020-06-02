@@ -40,3 +40,8 @@ static inline int double__compare(
     if (diff > +relative_eps) return +1;
     return 0;
 }
+
+
+/// # Number of vertices
+static inline size_t nVerticesInFace   (const size_t nDim) {return nDim  ;}
+static inline size_t nVerticesInPolygon(const size_t nDim) {return nDim+1;}
