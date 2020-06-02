@@ -177,3 +177,106 @@ finally:
 
     return status;
 }
+
+int insideCircumsphereOfPolygon(
+    const size_t nDim,
+    const double* const* const polygon,  // double[nDim+1][nDim]
+    const double*        const point,    // double[nDim]
+    bool* const inside
+) {
+    int status = SUCCESS;
+
+    double* matrix    = NULL;  // double matrix[nDim, nDim]
+    double* normsPer2 = NULL;  // double normsPer2[nDim]
+    double* centor    = NULL;  // double centor[nDim]
+
+    if (!(matrix    = (double*) MALLOC(nDim * nDim * sizeof(double)))) {
+        status = FAILURE; goto finally;
+    }
+    if (!(normsPer2 = (double*) MALLOC(nDim * sizeof(double)))) {
+        status = FAILURE; goto finally;
+    }
+    if (!(centor    = (double*) MALLOC(nDim * sizeof(double)))) {
+        status = FAILURE; goto finally;
+    }
+
+    /*
+     * C             :: Centor of circumsphere
+     * P0, P1, .. Pn :: Vertices of `polygon`
+     * Q             :: `point` to judge
+     *
+     *
+     *                       P2
+     *               O      /
+     *    Q -------- +     /   C
+     *                \   /  .
+     *                 \ / .
+     *                  P0 - - - - - - P1
+     *                      .
+     *                          .
+     *                             (Pn)
+     */
+
+    status = calculate_divisionRatioMatrix(nDim, polygon, matrix);
+    if (status) {goto finally;}
+
+    for (size_t i = 0 ; i < nDim ; i++) {
+        double norm = 0.0;
+        for (size_t j = 0 ; j < nDim ; j++) {
+            norm += (
+               (polygon[i+1][j] - polygon[0][j]) *
+               (polygon[i+1][j] - polygon[0][j])
+            );
+        }
+        normsPer2[i] = norm / 2.0;
+    }
+
+    LAPACK__dgemv(
+        'T',        // trans
+        nDim,       // m
+        nDim,       // n
+        1.0,        // alpha
+        matrix,     // x
+        nDim,       // lda
+        normsPer2,  // x
+        1,          // incx
+        0.0,        // beta
+        centor,     // y
+        1           // incy
+    );
+
+    /*
+     * c := (C - P0) :: Relative vector from P0 to C
+     * p := (Q - P0) :: Relative vector from P0 to Q
+     *
+     *               O
+     *    Q          +         C
+     *        .              .
+     *              .      .
+     *                  P0
+     *
+     *  {Q is inside in the circumsphere of P0, P1, ... Pn}
+     *    :: |(Q - C)|^2 <= |(C - P0)|^2
+     *    :: |(Q - C)|^2 -  |(C - P0)|^2 <= 0
+     *
+     * |(Q - C)|^2 - |(C - P0)|^2 = |(q - c)|^2 - |c|^2
+     *                            = |q|^2 - 2(q.c) <= 0
+     *
+     */
+
+    double judgement = 0.0;
+    for (size_t i = 0 ; i < nDim ; i++) {
+        double q_i = point[i] - polygon[0][i];
+        double c_i = centor[i];
+        judgement += q_i * (q_i - 2*c_i);
+    }
+    *inside = double__compare(judgement, 0.0) <= 0;
+
+finally:
+
+    if (matrix)    {FREE(matrix);}
+    if (normsPer2) {FREE(normsPer2);}
+    if (centor)    {FREE(centor);}
+
+    return status;
+}
