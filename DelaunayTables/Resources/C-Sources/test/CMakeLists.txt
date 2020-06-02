@@ -27,3 +27,18 @@ add_test(
     NAME "HashMap.set"
     COMMAND $<TARGET_FILE:testHashMap__set>
 )
+
+
+add_executable(
+    testDivisionRatio__2D
+    divisionRatio__2D.c
+)
+target_link_libraries(
+    testDivisionRatio__2D
+    DelaunayTable
+)
+
+add_test(
+    NAME "divisionRatio.2D"
+    COMMAND $<TARGET_FILE:testDivisionRatio__2D>
+)
