@@ -1,5 +1,20 @@
 
 add_executable(
+    testVector__append
+    Vector__append.c
+)
+target_link_libraries(
+    testVector__append
+    DelaunayTable
+)
+
+add_test(
+    NAME "Vector.append"
+    COMMAND $<TARGET_FILE:testVector__append>
+)
+
+
+add_executable(
     testList__append
     List__append.c
 )
@@ -9,9 +24,10 @@ target_link_libraries(
 )
 
 add_test(
-  NAME "List.append"
-  COMMAND $<TARGET_FILE:testList__append>
+    NAME "List.append"
+    COMMAND $<TARGET_FILE:testList__append>
 )
+
 
 add_executable(
     testHashMap__set
@@ -23,6 +39,6 @@ target_link_libraries(
 )
 
 add_test(
-  NAME "HashMap.set"
-  COMMAND $<TARGET_FILE:testHashMap__set>
+    NAME "HashMap.set"
+    COMMAND $<TARGET_FILE:testHashMap__set>
 )
