@@ -23,9 +23,9 @@ void sort__size_t__Array(
 
 /// ## IndexVector methods
 IndexVector* IndexVector__new(
-    const size_t capacity
+    const size_t size
 ) {
-    return Vector__new(capacity, sizeof(size_t));
+    return Vector__new(size, sizeof(size_t));
 }
 
 IndexVector* IndexVector__copy(

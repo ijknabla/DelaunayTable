@@ -24,7 +24,7 @@ typedef struct {
 
 /// ## Vector methods
 extern Vector* Vector__new(
-    const size_t capacity,
+    const size_t size,
     const size_t sizeofElement
 );
 

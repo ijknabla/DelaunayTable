@@ -9,11 +9,9 @@
 
 
 static Vector* ULongVector__new(
+    const size_t size
 ) {
-    return Vector__new(
-        2,
-        sizeof(unsigned long)
-    );
+    return Vector__new(size, sizeof(unsigned long));
 }
 
 static Vector* ULongVector__copy(
@@ -52,7 +50,7 @@ static inline unsigned long* ULongVector__elements(
 int main(int argc, char** argv) {
 
     Vector* vector;
-    assert( (vector = ULongVector__new()) != NULL );
+    assert( (vector = ULongVector__new(0)) != NULL );
 
     for (unsigned long element = 0; element < (unsigned long) N ; element++) {
         assert ( ULongVector__append(vector, element) == 0 );

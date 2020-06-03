@@ -50,10 +50,10 @@ static int Vector__reserve(
 
 /// ## Vector methods
 Vector* Vector__new(
-    const size_t capacity,
+    const size_t size,
     const size_t sizeofElement
 ) {
-    if (capacity == 0) {return NULL;}
+    const size_t capacity = (size == 0) ? default_capacity : size;
 
     Vector* const this = (Vector*) MALLOC(sizeof(Vector));
     if (!this) {goto error;}
@@ -61,7 +61,7 @@ Vector* Vector__new(
     this->data = (void*) CALLOC(capacity, sizeofElement);
     if (!(this->data)) {goto error;}
 
-    this->size     = 0;
+    this->size     = size;
     this->capacity = capacity;
 
     return this;
