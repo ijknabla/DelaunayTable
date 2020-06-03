@@ -1,9 +1,10 @@
 
 add_library(
     DelaunayTable SHARED
-    DelaunayTable.IO.c
     DelaunayTable.Geometry.c
     DelaunayTable.Container.c
+    DelaunayTable.PolygonTree.c
+    DelaunayTable.IO.c
 )
 
 target_include_directories(
