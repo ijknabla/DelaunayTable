@@ -19,7 +19,7 @@ typedef Vector IndexVector;
 
 /// ## IndexVector methods
 extern IndexVector* IndexVector__new(
-    const size_t capacity
+    const size_t size
 );
 
 extern IndexVector* IndexVector__copy(

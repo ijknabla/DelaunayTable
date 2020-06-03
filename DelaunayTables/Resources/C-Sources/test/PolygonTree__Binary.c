@@ -70,7 +70,7 @@ static inline size_t nPolygons() {
 
 int main(int argc, char** argv) {
     PolygonTreeVector* polygons;
-    assert( (polygons = PolygonTreeVector__new()) != NULL );
+    assert( (polygons = PolygonTreeVector__new(0)) != NULL );
 
     make_tree(polygons, NULL, nDepth, 0);
 

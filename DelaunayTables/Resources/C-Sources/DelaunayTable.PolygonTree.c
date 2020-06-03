@@ -15,7 +15,7 @@ PolygonTree* PolygonTree__new(
     this->vertices = (size_t*) CALLOC(nVerticesInPolygon(nDim), sizeof(size_t));
     if (!(this->vertices)) {goto error;}
 
-    this->children = PolygonTreeVector__new();
+    this->children = PolygonTreeVector__new(0);
     if (!(this->children)) {goto error;}
 
     return this;
@@ -49,11 +49,9 @@ int PolygonTree__append_child(
 
 /// ## PolygonTreeVector methods
 PolygonTreeVector* PolygonTreeVector__new(
+    const size_t size
 ) {
-    return (PolygonTreeVector*) Vector__new(
-        2,
-        sizeof(PolygonTree*)
-    );
+    return Vector__new(size, sizeof(PolygonTree*));
 }
 
 void PolygonTreeVector__delete(

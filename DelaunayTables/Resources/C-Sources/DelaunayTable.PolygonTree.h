@@ -38,6 +38,7 @@ extern int PolygonTree__append_child(
 
 /// ## PolygonTreeVector methods
 extern PolygonTreeVector* PolygonTreeVector__new(
+    const size_t size
 );
 
 extern void PolygonTreeVector__delete(
