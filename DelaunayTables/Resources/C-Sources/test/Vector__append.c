@@ -16,6 +16,12 @@ static Vector* ULongVector__new(
     );
 }
 
+static void ULongVector__delete(
+    Vector* const this
+) {
+    Vector__delete(this);
+}
+
 static int ULongVector__append(
     Vector* const this,
     const unsigned long l
@@ -27,13 +33,6 @@ static int ULongVector__append(
     );
 }
 
-static void ULongVector__delete(
-    Vector* const this
-) {
-    Vector__delete(this);
-}
-
-
 static inline unsigned long* ULongVector__elements(
     const Vector* const this
 ) {
@@ -43,10 +42,8 @@ static inline unsigned long* ULongVector__elements(
 
 int main(int argc, char** argv) {
 
-    Vector* vector = ULongVector__new();
-    if (!vector) {
-        exit(EXIT_FAILURE);
-    }
+    Vector* vector;
+    assert( (vector = ULongVector__new()) != NULL );
 
     for (unsigned long element = 0; element < (unsigned long) N ; element++) {
         assert( (vector->size) == (size_t) element );
