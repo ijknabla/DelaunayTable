@@ -64,6 +64,26 @@ error:
     return NULL;
 }
 
+Vector* Vector__copy(
+    const Vector* const this,
+    const size_t sizeofElement
+) {
+    Vector* copied = Vector__new(
+        this->size,
+        sizeofElement
+    );
+    if (!copied) {return NULL;}
+
+    copied->size = this->size;
+    memcpy(
+        copied->data,
+        this->data,
+        (this->size) * sizeofElement
+    );
+
+    return copied;
+}
+
 void Vector__delete(
     Vector* const this
 ) {

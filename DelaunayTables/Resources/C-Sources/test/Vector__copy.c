@@ -16,6 +16,15 @@ static Vector* ULongVector__new(
     );
 }
 
+static Vector* ULongVector__copy(
+    const Vector* const this
+) {
+    return Vector__copy(
+        this,
+        sizeof(unsigned long)
+    );
+}
+
 static void ULongVector__delete(
     Vector* const this
 ) {
@@ -46,19 +55,20 @@ int main(int argc, char** argv) {
     assert( (vector = ULongVector__new()) != NULL );
 
     for (unsigned long element = 0; element < (unsigned long) N ; element++) {
-        assert( (vector->size) == (size_t) element );
-        assert( (vector->size) <= (vector->capacity) );
-
         assert ( ULongVector__append(vector, element) == 0 );
-
-        for (size_t index = 0 ; index < element+1 ; index++) {
-            assert( ULongVector__elements(vector)[index] == (unsigned long) index );
-        }
     }
 
-    assert( (vector->size) == (size_t) N );
-    assert( (vector->size) <= (vector->capacity) );
+    Vector* copied_vector;
+    assert( (copied_vector = ULongVector__copy(vector)) != NULL );
 
+    assert( (vector->size       ) == (size_t) N );
+    assert( (copied_vector->size) == (size_t) N );
+
+    for (size_t i = 0 ; i < (vector->size) ; i++) {
+        assert( ULongVector__elements(vector)[i] == ULongVector__elements(copied_vector)[i] );
+    }
+
+    ULongVector__delete(copied_vector);
     ULongVector__delete(vector);
 
     return EXIT_SUCCESS;
