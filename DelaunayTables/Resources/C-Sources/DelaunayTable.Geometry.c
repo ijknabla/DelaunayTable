@@ -163,7 +163,6 @@ int divisionRatioFromPolygonVertices(
         &ratio[1],  // y
         1           // incy
     );
-    if (status) {goto finally;}
 
     ratio[0] = 1.0;
     for(size_t i = 1 ; i < (nDim+1) ; i++) {
