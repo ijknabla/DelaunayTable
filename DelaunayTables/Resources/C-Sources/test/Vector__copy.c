@@ -29,17 +29,6 @@ static void ULongVector__delete(
     Vector__delete(this);
 }
 
-static int ULongVector__append(
-    Vector* const this,
-    const unsigned long l
-) {
-    return Vector__append(
-        this,
-        (Sequence__element) &l,
-        sizeof(unsigned long)
-    );
-}
-
 static inline unsigned long* ULongVector__elements(
     const Vector* const this
 ) {
@@ -50,10 +39,10 @@ static inline unsigned long* ULongVector__elements(
 int main(int argc, char** argv) {
 
     Vector* vector;
-    assert( (vector = ULongVector__new(0)) != NULL );
+    assert( (vector = ULongVector__new(N)) != NULL );
 
-    for (unsigned long element = 0; element < (unsigned long) N ; element++) {
-        assert ( ULongVector__append(vector, element) == 0 );
+    for (size_t i = 0 ; i < N ; i++) {
+        ULongVector__elements(vector)[i] = (unsigned long) i;
     }
 
     Vector* copied_vector;
@@ -63,6 +52,7 @@ int main(int argc, char** argv) {
     assert( (copied_vector->size) == (size_t) N );
 
     for (size_t i = 0 ; i < (vector->size) ; i++) {
+        assert( ULongVector__elements(vector)[i] == (unsigned long) i );
         assert( ULongVector__elements(vector)[i] == ULongVector__elements(copied_vector)[i] );
     }
 
