@@ -4,4 +4,6 @@ project(DelaunayTable C)
 
 include(CTest)
 
+find_package(BLAS)
+
 add_subdirectory(C-Sources)

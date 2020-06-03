@@ -27,3 +27,63 @@ add_test(
     NAME "HashMap.set"
     COMMAND $<TARGET_FILE:testHashMap__set>
 )
+
+
+add_executable(
+    testDivisionRatio__2D
+    divisionRatio__2D.c
+)
+target_link_libraries(
+    testDivisionRatio__2D
+    DelaunayTable
+)
+
+add_test(
+    NAME "divisionRatio.2D"
+    COMMAND $<TARGET_FILE:testDivisionRatio__2D>
+)
+
+
+add_executable(
+    testDivisionRatio__4D
+    divisionRatio__4D.c
+)
+target_link_libraries(
+    testDivisionRatio__4D
+    DelaunayTable
+)
+
+add_test(
+    NAME "divisionRatio.4D"
+    COMMAND $<TARGET_FILE:testDivisionRatio__4D>
+)
+
+
+add_executable(
+    testCircumsphere__2D
+    circumsphere__2D.c
+)
+target_link_libraries(
+    testCircumsphere__2D
+    DelaunayTable
+)
+
+add_test(
+    NAME "circumsphere.2D"
+    COMMAND $<TARGET_FILE:testCircumsphere__2D>
+)
+
+
+add_executable(
+    testCircumsphere__4D
+    circumsphere__4D.c
+)
+target_link_libraries(
+    testCircumsphere__4D
+    DelaunayTable
+)
+
+add_test(
+    NAME "circumsphere.4D"
+    COMMAND $<TARGET_FILE:testCircumsphere__4D>
+)
