@@ -28,6 +28,11 @@ extern Vector* Vector__new(
     const size_t sizeofElement
 );
 
+extern Vector* Vector__copy(
+    const Vector* this,
+    const size_t sizeofElement
+);
+
 extern void Vector__delete(
     Vector* this
 );
