@@ -3,6 +3,20 @@
 
 #include <string.h>
 
+// # capacity assumption
+static const size_t default_capacity = 1;
+
+static inline size_t assume_capacity(
+    const size_t needed_size,
+    const size_t current_capacity
+) {
+    size_t capacity = current_capacity;
+    while (capacity < needed_size) {
+        capacity *= 2;
+    }
+    return capacity;
+}
+
 
 /// # Vector
 /// ## Vector static functions
@@ -98,22 +112,25 @@ extern int Vector__append(
 ) {
     int status = SUCCESS;
 
-    const size_t new_size = this->size + 1;
+    const size_t prev_capacity = this->capacity;
+    const size_t prev_size     = this->size;
+    const size_t next_size     = prev_size+1;
 
-    if (new_size > this->capacity) {
+    if (next_size > prev_capacity) {
         status = Vector__reserve(
-            this, (this->capacity) * 2, sizeofElement
+            this,
+            assume_capacity(next_size, prev_capacity),
+            sizeofElement
         );
         if (status) {return status;}
     }
 
+    this->size = next_size;
     memcpy(
-        this->data + (this->size) * sizeofElement,
+        this->data + (prev_size) * sizeofElement,
         element,
         sizeofElement
     );
-
-    this->size = new_size;
 
     return status;
 }
