@@ -57,3 +57,18 @@ add_test(
     NAME "divisionRatio.4D"
     COMMAND $<TARGET_FILE:testDivisionRatio__4D>
 )
+
+
+add_executable(
+    testCircumsphere__2D
+    circumsphere__2D.c
+)
+target_link_libraries(
+    testCircumsphere__2D
+    DelaunayTable
+)
+
+add_test(
+    NAME "circumsphere.2D"
+    COMMAND $<TARGET_FILE:testCircumsphere__2D>
+)
