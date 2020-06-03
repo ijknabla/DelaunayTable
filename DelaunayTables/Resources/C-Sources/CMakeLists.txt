@@ -3,6 +3,7 @@ add_library(
     DelaunayTable SHARED
     DelaunayTable.Geometry.c
     DelaunayTable.Container.c
+    DelaunayTable.IndexVector.c
     DelaunayTable.PolygonTree.c
     DelaunayTable.IO.c
 )
