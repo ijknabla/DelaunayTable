@@ -84,3 +84,30 @@ bool NeighborPairMap__remove(
         (Map__value__delete_function*) NeighborPair__delete
     );
 }
+
+int NeighborPairMap__update_by_opposite(
+    NeighborPairMap* this,
+    const IndexVector* face,
+    const size_t opposite_old,
+    const size_t opposite_new,
+    PolygonTree* polygon_new
+) {
+    Neighbor* neighborPair;
+
+    if (!NeighborPairMap__get(this, face, &neighborPair)) {
+        return FAILURE;
+    }
+
+    for (size_t i = 0 ; i < 2 ; i++) {
+        if (
+            neighborPair[i].polygon
+            && neighborPair[i].opposite == opposite_old
+        ) {
+            neighborPair[i].polygon  = polygon_new;
+            neighborPair[i].opposite = opposite_new;
+            return SUCCESS;
+        }
+    }
+
+    return FAILURE;
+}
