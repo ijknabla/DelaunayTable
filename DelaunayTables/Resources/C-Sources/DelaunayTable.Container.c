@@ -224,7 +224,7 @@ HashMap* HashMap__new(
     if (!this) {goto error;}
 
     this->size = 0;
-    this->capacity = (2 << 6) - 1;
+    this->capacity = (2 << 2) - 1;
     this->pairs = (Map__Pair*) CALLOC(
         this->capacity, sizeof(Map__Pair)
     );
