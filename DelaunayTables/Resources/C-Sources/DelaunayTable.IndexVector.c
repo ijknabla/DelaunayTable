@@ -1,6 +1,25 @@
 
 #include "DelaunayTable.IndexVector.h"
 
+#include <stdlib.h>
+
+
+/// # Utility function
+static int compare__size_t(const void* a, const void* b) {
+    const size_t sa = *(size_t*) a;
+    const size_t sb = *(size_t*) b;
+    if      (sa < sb) { return -1;}
+    else if (sa > sb) { return +1;}
+    else              { return  0;}
+}
+
+void sort__size_t__Array(
+    size_t* const sizes,
+    const size_t nSizes
+) {
+    qsort(sizes, nSizes, sizeof(size_t), compare__size_t);
+}
+
 
 /// ## IndexVector methods
 IndexVector* IndexVector__new(
