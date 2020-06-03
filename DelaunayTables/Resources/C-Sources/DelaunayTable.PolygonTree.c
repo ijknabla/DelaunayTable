@@ -39,6 +39,13 @@ void PolygonTree__delete(
     FREE(this);
 }
 
+int PolygonTree__append_child(
+    PolygonTree* const this,
+    PolygonTree* const child
+) {
+    return PolygonTreeVector__append(this->children, child);
+}
+
 
 /// ## PolygonTreeVector methods
 PolygonTreeVector* PolygonTreeVector__new(
@@ -53,4 +60,23 @@ void PolygonTreeVector__delete(
     PolygonTreeVector* const this
 ) {
     Vector__delete(this);
+}
+
+void PolygonTreeVector__delete_elements(
+    PolygonTreeVector* const this
+) {
+    for (size_t i = 0 ; i < (this->size) ; i++) {
+        PolygonTree__delete(PolygonTreeVector__elements(this)[i]);
+    }
+}
+
+extern int PolygonTreeVector__append(
+    PolygonTreeVector* const this,
+    PolygonTree* polygon
+) {
+    return Vector__append(
+        this,
+        &polygon,
+        sizeof(PolygonTree*)
+    );
 }
