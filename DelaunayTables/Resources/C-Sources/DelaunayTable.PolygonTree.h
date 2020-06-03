@@ -3,12 +3,13 @@
 
 #include "DelaunayTable.Geometry.h"
 #include "DelaunayTable.Container.h"
+#include "DelaunayTable.Neighbor.h"
 
 
 /// # PolygonTree & PolygonTreeVector
 typedef Vector PolygonTreeVector;
 
-typedef struct {
+typedef struct PolygonTree__TAG {
     size_t* vertices;
     PolygonTreeVector* children;
 } PolygonTree;

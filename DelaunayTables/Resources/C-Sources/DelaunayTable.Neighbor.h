@@ -3,15 +3,16 @@
 
 #include "DelaunayTable.Container.h"
 #include "DelaunayTable.IndexVector.h"
-#include "DelaunayTable.PolygonTree.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 
 
+struct PolygonTree__TAG;
+
 typedef struct {
     size_t opposite;
-    PolygonTree* polygon;
+    struct PolygonTree__TAG* polygon;
 } Neighbor;
 
 
@@ -48,5 +49,5 @@ extern int NeighborPairMap__update_by_opposite(
     const IndexVector* face,
     const size_t opposite_old,
     const size_t opposite_new,
-    PolygonTree* polygon_new
+    struct PolygonTree__TAG* polygon_new
 );

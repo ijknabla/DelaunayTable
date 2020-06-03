@@ -90,7 +90,7 @@ int NeighborPairMap__update_by_opposite(
     const IndexVector* face,
     const size_t opposite_old,
     const size_t opposite_new,
-    PolygonTree* polygon_new
+    struct PolygonTree__TAG* polygon_new
 ) {
     Neighbor* neighborPair;
 
