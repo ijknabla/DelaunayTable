@@ -15,6 +15,21 @@ add_test(
 
 
 add_executable(
+    testVector__copy
+    Vector__copy.c
+)
+target_link_libraries(
+    testVector__copy
+    DelaunayTable
+)
+
+add_test(
+    NAME "Vector.copy"
+    COMMAND $<TARGET_FILE:testVector__copy>
+)
+
+
+add_executable(
     testHashMap__set
     HashMap__set.c
 )
