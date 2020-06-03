@@ -38,3 +38,49 @@ void NeighborPairMap__delete(
         (Map__value__delete_function*) NeighborPair__delete
     );
 }
+
+bool NeighborPairMap__get(
+    const NeighborPairMap* const this,
+    const IndexVector* const face,
+    Neighbor** const neighborPair
+) {
+    return HashMap__get(
+        this,
+        (Map__key)    face,
+        (Map__value*) neighborPair,
+        (Map__key__hash_function*)     IndexVector__hash,
+        (Map__key__equality_function*) IndexVector__equality
+    );
+}
+
+int NeighborPairMap__set(
+    NeighborPairMap* const this,
+    const IndexVector* face,
+    const Neighbor neighborPair[2]
+) {
+    return HashMap__set(
+        this,
+        (Map__key)   face,
+        (Map__value) neighborPair,
+        (Map__key__copy_function*)     IndexVector__copy,
+        (Map__key__delete_function*)   IndexVector__delete,
+        (Map__key__hash_function*)     IndexVector__hash,
+        (Map__key__equality_function*) IndexVector__equality,
+        (Map__value__copy_function*)   NeighborPair__copy,
+        (Map__value__delete_function*) NeighborPair__delete
+    );
+}
+
+bool NeighborPairMap__remove(
+    NeighborPairMap* const this,
+    const IndexVector* const face
+) {
+    return HashMap__remove(
+        this,
+        (Map__key) face,
+        (Map__key__delete_function*)   IndexVector__delete,
+        (Map__key__hash_function*)     IndexVector__hash,
+        (Map__key__equality_function*) IndexVector__equality,
+        (Map__value__delete_function*) NeighborPair__delete
+    );
+}
