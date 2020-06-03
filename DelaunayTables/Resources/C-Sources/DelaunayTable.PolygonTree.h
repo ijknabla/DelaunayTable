@@ -22,24 +22,18 @@ extern void PolygonTree__delete(
     PolygonTree* this
 );
 
+static inline size_t PolygonTree__nChildren(
+    const PolygonTree* this
+);
+
+static inline PolygonTree** PolygonTree__children(
+    const PolygonTree* this
+);
+
 extern int PolygonTree__append_child(
     PolygonTree* this,
     PolygonTree* child
 );
-
-static inline size_t PolygonTree__nChildren(
-    const PolygonTree* const this
-) {
-    return this->children->size;
-}
-
-static inline PolygonTree** PolygonTreeVector__elements(const PolygonTreeVector* this);
-
-static inline PolygonTree** PolygonTree__children(
-    const PolygonTree* const this
-) {
-    return PolygonTreeVector__elements(this->children);
-}
 
 
 /// ## PolygonTreeVector methods
@@ -54,10 +48,29 @@ extern void PolygonTreeVector__delete_elements(
     PolygonTreeVector* this
 );
 
+static inline PolygonTree** PolygonTreeVector__elements(
+    const PolygonTreeVector* this
+);
+
 extern int PolygonTreeVector__append(
     PolygonTreeVector* this,
     PolygonTree* polygon
 );
+
+
+
+/// Declarations of static inline functions
+static inline size_t PolygonTree__nChildren(
+    const PolygonTree* const this
+) {
+    return this->children->size;
+}
+
+static inline PolygonTree** PolygonTree__children(
+    const PolygonTree* const this
+) {
+    return PolygonTreeVector__elements(this->children);
+}
 
 static inline PolygonTree** PolygonTreeVector__elements(
     const PolygonTreeVector* this
