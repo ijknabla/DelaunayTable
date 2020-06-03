@@ -33,12 +33,12 @@ static inline size_t PolygonTree__nChildren(
     return this->children->size;
 }
 
-static inline PolygonTree** PolygonTreeVector__data(const PolygonTreeVector* this);
+static inline PolygonTree** PolygonTreeVector__elements(const PolygonTreeVector* this);
 
 static inline PolygonTree** PolygonTree__children(
     const PolygonTree* const this
 ) {
-    return PolygonTreeVector__data(this->children);
+    return PolygonTreeVector__elements(this->children);
 }
 
 
@@ -59,8 +59,8 @@ extern int PolygonTreeVector__append(
     PolygonTree* polygon
 );
 
-static inline PolygonTree** PolygonTreeVector__data(
+static inline PolygonTree** PolygonTreeVector__elements(
     const PolygonTreeVector* this
 ) {
-    return Vector__data(this, PolygonTree*);
+    return Vector__elements(this, PolygonTree*);
 }

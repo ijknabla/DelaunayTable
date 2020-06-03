@@ -19,7 +19,7 @@ typedef void* Sequence__element;
 typedef struct {
     size_t size;
     size_t capacity;
-    void* data;
+    void* data;  /// Address where elements are saved
 } Vector;
 
 /// ## Vector methods
@@ -38,7 +38,12 @@ extern int Vector__append(
     const size_t sizeofElement
 );
 
-#define Vector__data(this, type) ( (type*) (this)->data )
+/**
+ * `elements` is array that actually referenced.
+ *  If type of each element is `element_type`,
+ *  type of `elements` is `element_type*`.
+ */
+#define Vector__elements(this, element_type) ( (element_type*) (this)->data )
 
 
 /**
