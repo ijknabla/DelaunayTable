@@ -72,3 +72,18 @@ add_test(
     NAME "circumsphere.2D"
     COMMAND $<TARGET_FILE:testCircumsphere__2D>
 )
+
+
+add_executable(
+    testCircumsphere__4D
+    circumsphere__4D.c
+)
+target_link_libraries(
+    testCircumsphere__4D
+    DelaunayTable
+)
+
+add_test(
+    NAME "circumsphere.4D"
+    COMMAND $<TARGET_FILE:testCircumsphere__4D>
+)
