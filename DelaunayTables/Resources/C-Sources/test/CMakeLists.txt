@@ -87,3 +87,18 @@ add_test(
     NAME "circumsphere.4D"
     COMMAND $<TARGET_FILE:testCircumsphere__4D>
 )
+
+
+add_executable(
+    testPolygonTree__Binary
+    PolygonTree__Binary.c
+)
+target_link_libraries(
+    testPolygonTree__Binary
+    DelaunayTable
+)
+
+add_test(
+    NAME "PolygonTree.Binary"
+    COMMAND $<TARGET_FILE:testPolygonTree__Binary>
+)

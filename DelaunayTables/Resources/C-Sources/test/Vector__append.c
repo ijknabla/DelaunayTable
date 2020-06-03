@@ -34,10 +34,10 @@ static void ULongVector__delete(
 }
 
 
-static inline unsigned long* ULongVector__data(
+static inline unsigned long* ULongVector__elements(
     const Vector* const this
 ) {
-    return Vector__data(this, unsigned long);
+    return Vector__elements(this, unsigned long);
 }
 
 
@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
         assert ( ULongVector__append(vector, element) == 0 );
 
         for (size_t index = 0 ; index < element+1 ; index++) {
-            assert( ULongVector__data(vector)[index] == (unsigned long) index );
+            assert( ULongVector__elements(vector)[index] == (unsigned long) index );
         }
     }
 
