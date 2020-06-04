@@ -22,22 +22,16 @@ int DelaunayTable__from_buffer(
     this->nPoints = nPoints;
     this->nIn     = nIn;
     this->nOut    = nOut;
+    this->table   = buffer;
 
     // Resources
-    this->table             = NULL;
     this->table_extended    = NULL;
     this->polygonTreeVector = NULL;
     this->neighborPairMap   = NULL;
 
-    const size_t nTable          = nPoints                 * (nIn+nOut);
-    const size_t nTable_extended = nVerticesInPolygon(nIn) * nIn       ;
-
-    this->table = (double*) MALLOC( nTable * sizeof(double) );
-    if (!(this->table)) {
-        status = FAILURE; goto finally;
-    }
-
-    this->table_extended = (double*) MALLOC( nTable_extended * sizeof(double) );
+    this->table_extended = (double*) MALLOC(
+        nVerticesInPolygon(nIn) * nIn * sizeof(double)
+    );
     if (!(this->table_extended)) {
         status = FAILURE; goto finally;
     }
@@ -58,9 +52,6 @@ finally:
 
     if (status) {
         if (this) {
-            if (this->table) {
-                FREE(this->table);
-            }
             if (this->table_extended) {
                 FREE(this->table_extended);
             }
@@ -82,7 +73,6 @@ finally:
 void DelaunayTable__delete(
     DelaunayTable* const this
 ) {
-    FREE(this->table);
     FREE(this->table_extended);
     PolygonTreeVector__delete_elements(this->polygonTreeVector);
     PolygonTreeVector__delete         (this->polygonTreeVector);
