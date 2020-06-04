@@ -353,7 +353,13 @@ int PolygonTreeVector__divide_at_point(
 ) {
     int status = SUCCESS;
 
-    double* divisionRatio = NULL;
+    FaceVector* faceVector    = NULL;
+    double*     divisionRatio = NULL;
+
+    faceVector = FaceVector__new(0);
+    if (!faceVector) {
+        status = FAILURE; goto finally;
+    }
 
     divisionRatio = (double*) MALLOC(
         nVerticesInPolygon(nDim) * sizeof(double)
@@ -382,8 +388,23 @@ int PolygonTreeVector__divide_at_point(
         status = FAILURE; goto finally;
     }
 
+    if (!divisionRatio__on_face(nDim, divisionRatio)) {
+        status = PolygonTreeVector__divide_polygon_inside(
+            nDim,
+            this,
+            polygonToDivide,
+            pointToDivide,
+            points,
+            get_coordinates,
+            neighborPairMap,
+            faceVector
+        );
+        if (status) {goto finally;}
+    }
+
 finally:
 
+    if (faceVector)    {FaceVector__delete(faceVector);}
     if (divisionRatio) {FREE(divisionRatio);}
 
     return status;
