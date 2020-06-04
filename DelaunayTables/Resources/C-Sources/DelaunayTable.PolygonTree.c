@@ -3,6 +3,8 @@
 
 #include "DelaunayTable.IndexVector.h"
 
+#include <stdbool.h>
+
 
 /// # FaceVector
 typedef Vector FaceVector;
@@ -338,6 +340,66 @@ static int PolygonTreeVector__divide_polygon_inside(
 finally:
 
     if (face) {IndexVector__delete(face);}
+
+    return status;
+}
+
+static int Face__is_valid(
+    const IndexVector* const face,
+    const NeighborPairMap* const neighborPairMap,
+    const Points points,
+    Points__get_coordinates* get_coordinates,
+    bool* const validFace
+) {
+    int status = SUCCESS;
+
+    const size_t nDim = face->size;
+
+    *validFace = false;
+
+    const double** shape = NULL;
+
+    Neighbor* neighborPair;
+    if (!NeighborPairMap__get(neighborPairMap, face, &neighborPair)) {
+        status = FAILURE; goto finally;
+    }
+    if (!neighborPair[0].polygon || !neighborPair[1].polygon) {
+        *validFace = true;
+        goto finally;
+    }
+
+    shape = (const double**) MALLOC(
+        nVerticesInPolygon(nDim) * sizeof(double*)
+    );
+    if (!shape) {
+        status = FAILURE; goto finally;
+    }
+
+    const PolygonTree* const polygon = neighborPair[0].polygon;
+
+    for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+        shape[i] = get_coordinates(points, polygon->vertices[i]);
+    }
+
+    const double* point = get_coordinates(points, neighborPair[1].opposite);
+
+    bool insideCircumsphere;
+
+    status = insideCircumsphereOfPolygon(
+        nDim,
+        shape,
+        point,
+        &insideCircumsphere
+    );
+    if (status) {
+        goto finally;
+    }
+
+    *validFace = !insideCircumsphere;
+
+finally:
+
+    if (shape) {FREE(shape);}
 
     return status;
 }
