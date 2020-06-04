@@ -11,8 +11,8 @@ typedef struct{
     size_t nPoints;
     size_t nIn;
     size_t nOut;
-    double* table;
-    double* table_extended;
+    const double* table;
+          double* table_extended;
     PolygonTreeVector* polygonTreeVector;
     NeighborPairMap*   neighborPairMap;
 } DelaunayTable;
@@ -24,7 +24,7 @@ extern int DelaunayTable__from_buffer(
     const size_t nPoints,
     const size_t nIn,
     const size_t nOut,
-    double* buffer
+    const double* buffer
 );
 
 extern void DelaunayTable__delete(

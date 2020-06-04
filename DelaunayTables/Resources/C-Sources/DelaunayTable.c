@@ -17,7 +17,7 @@ int DelaunayTable__from_buffer(
     const size_t nPoints,
     const size_t nIn,
     const size_t nOut,
-    double* const buffer
+    const double* const buffer
 ) {
     int status = SUCCESS;
 
@@ -109,10 +109,10 @@ static double* DelaunayTable__get_coordinates(
     const size_t iPoint
 ) {
     if (tablePointBegin(this) <= iPoint && iPoint < tablePointEnd(this)) {
-        return (this->table) + (this->nIn + this->nOut) * (iPoint - tablePointBegin(this));
+        return (double*) (this->table) + (this->nIn + this->nOut) * (iPoint - tablePointBegin(this));
     } else if (extendedPointBegin(this) <= iPoint && iPoint < extendedPointEnd(this)
     ) {
-        return (this->table_extended) + (this->nIn) * (iPoint - extendedPointBegin(this));
+        return (double*) (this->table_extended) + (this->nIn) * (iPoint - extendedPointBegin(this));
     } else {
         return NULL;
     }
