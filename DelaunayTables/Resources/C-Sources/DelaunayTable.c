@@ -3,6 +3,11 @@
 
 
 /// ## static function declarations
+static const double* DelaunayTable__get_coordinates(
+    const DelaunayTable* this,
+    const size_t iPoint
+);
+
 static int DelaunayTable__extend_table(
     DelaunayTable* this
 );
@@ -10,6 +15,7 @@ static int DelaunayTable__extend_table(
 static int DelaunayTable__delaunay_divide(
     DelaunayTable* this
 );
+
 
 /// ## DelaunayTable methods
 int DelaunayTable__from_buffer(
