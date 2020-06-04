@@ -6,9 +6,16 @@ class ExternalDelaunayTable
 
   function constructor
     extends Modelica.Icons.Function;
+    input Integer nin;
+    input Integer nout;
+    input Real[:,nin+nout] table;
     output ExternalDelaunayTable externalDelaunayTable;
 
-  external "C" externalDelaunayTable = DelaunayTable__open(
+  external "C" externalDelaunayTable = ExternalDelaunayTable__constructor(
+    size(table, 1),
+    nin,
+    nout,
+    table
   ) annotation (
     IncludeDirectory = "modelica://DelaunayTables/Resources/C-Sources",
     Include = "#include \"DelaunayTable.External.inc\""
@@ -19,7 +26,7 @@ class ExternalDelaunayTable
     extends Modelica.Icons.Function;
     input ExternalDelaunayTable externalDelaunayTable;
 
-  external "C" DelaunayTable__close(
+  external "C" ExternalDelaunayTable__destructor(
     externalDelaunayTable
   ) annotation (
     IncludeDirectory = "modelica://DelaunayTables/Resources/C-Sources",

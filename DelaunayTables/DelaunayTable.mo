@@ -3,7 +3,9 @@ within DelaunayTables;
 block DelaunayTable
   extends Modelica.Blocks.Interfaces.MIMO;
 
-  Types.ExternalDelaunayTable table = Types.ExternalDelaunayTable();
+  parameter Real[:,nin+nout] table;
+
+  Types.ExternalDelaunayTable tableObject = Types.ExternalDelaunayTable(nin, nout, table);
 
 equation
 
