@@ -7,6 +7,10 @@ static int DelaunayTable__extend_table(
     DelaunayTable* this
 );
 
+static int DelaunayTable__delaunay_divide(
+    DelaunayTable* this
+);
+
 /// ## DelaunayTable methods
 int DelaunayTable__from_buffer(
     DelaunayTable** const reference,
@@ -52,6 +56,13 @@ int DelaunayTable__from_buffer(
     }
 
     status = DelaunayTable__extend_table(
+        this
+    );
+    if (status) {
+        goto finally;
+    }
+
+    status = DelaunayTable__delaunay_divide(
         this
     );
     if (status) {
@@ -144,4 +155,87 @@ static int DelaunayTable__extend_table(
     }
 
     return SUCCESS;
+}
+
+static int DelaunayTable__delaunay_divide(
+    DelaunayTable* this
+) {
+    // Assertion polygonTreeVector must be empty
+    if ( (this->polygonTreeVector->size) != 0 ) {
+        return FAILURE;
+    }
+
+    int status = SUCCESS;
+
+    const size_t nDim = this->nIn;
+
+    IndexVector* face = IndexVector__new(nVerticesInFace(nDim));
+    if (!face) {
+        status = FAILURE; goto finally;
+    }
+
+    // Setup bigPolygon as root of polygonTree
+    PolygonTree* const bigPolygon = PolygonTree__new(nDim);
+    if (!bigPolygon) {status = FAILURE; goto finally;}
+
+    status = PolygonTreeVector__append(this->polygonTreeVector, bigPolygon);
+    if (status) {
+        PolygonTree__delete(bigPolygon);
+        goto finally;
+    }
+
+    for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+        bigPolygon->vertices[i] = extendedPointBegin(this) + i;
+    }
+
+    for (size_t iEx = 0 ; iEx < nVerticesInPolygon(nDim) ; iEx++) {
+        // Set vertices of face
+        for (size_t i = 0 ; i < nVerticesInFace(nDim) ; i++) {
+            if (i < iEx) {
+                IndexVector__elements(face)[i] = bigPolygon->vertices[i+0];
+            } else {
+                IndexVector__elements(face)[i] = bigPolygon->vertices[i+1];
+            }
+        }
+
+        // Set to neighborPairMap
+        Neighbor neighborPair[2] = {
+            {bigPolygon->vertices[iEx], bigPolygon},
+            {-1                       , NULL      }
+        };
+
+        status = NeighborPairMap__set(
+            this->neighborPairMap,
+            face,
+            neighborPair
+        );
+        if (status) {
+            goto finally;
+        }
+    }
+
+    for (
+        size_t pointToDivide = tablePointBegin(this);
+        pointToDivide < tablePointEnd(this);
+        pointToDivide++
+    ) {
+        status = PolygonTreeVector__divide_at_point(
+            nDim,
+            this->polygonTreeVector,
+            pointToDivide,
+            this,
+            (Points__get_coordinates*) DelaunayTable__get_coordinates,
+            bigPolygon,
+            this->neighborPairMap
+        );
+        if (status) {
+            goto finally;
+        }
+    }
+
+finally:
+
+    if (face) {IndexVector__delete(face);}
+
+    return status;
 }
