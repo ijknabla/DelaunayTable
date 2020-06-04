@@ -18,7 +18,7 @@ static inline double range(
     const size_t i,
     const size_t N
 ) {
-    double r = (double) i / (double) N-1;
+    double r = (double) i / (double) (N-1);
     return (1-r) * x_min + r * x_max;
 }
 
