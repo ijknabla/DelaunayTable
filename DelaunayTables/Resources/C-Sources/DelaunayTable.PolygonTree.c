@@ -286,7 +286,6 @@ static int PolygonTreeVector__divide_polygon_inside(
         sort__size_t__Array(IndexVector__elements(face), nVerticesInFace(nDim));
 
         // Set to neighborPairMap
-
         Neighbor neighborPair[2] = {
             {polygonToDivide->vertices[iEx_a], newPolygons[iEx_b]},
             {polygonToDivide->vertices[iEx_b], newPolygons[iEx_a]}
@@ -316,7 +315,6 @@ static int PolygonTreeVector__divide_polygon_inside(
         }
 
         // Update neighborPairMap
-
         status = NeighborPairMap__update_by_opposite(
             neighborPairMap,
             face,
@@ -400,6 +398,174 @@ static int Face__is_valid(
 finally:
 
     if (shape) {FREE(shape);}
+
+    return status;
+}
+
+static int PolygonTreeVector__flip_face(
+    const size_t nDim,
+    PolygonTreeVector* const this,
+    const IndexVector* faceToFlip,
+    const size_t pointToDivide,
+    const Points points,
+    Points__get_coordinates* get_coordinates,
+    NeighborPairMap* const neighborPairMap,
+    FaceVector* faceVector
+) {
+    int status = SUCCESS;
+
+    const size_t previousPolygonVectorSize = this->size;
+
+    IndexVector* face = IndexVector__new(nVerticesInFace(nDim));
+    if (!face) {
+        status = FAILURE; goto finally;
+    }
+
+    Neighbor* neighborPairToFlip = NULL;
+
+    if (!NeighborPairMap__get(neighborPairMap, faceToFlip, &neighborPairToFlip)) {
+        status = FAILURE; goto finally;
+    }
+
+    if (
+        !neighborPairToFlip[0].polygon ||
+        !neighborPairToFlip[1].polygon
+    ) {
+        status = FAILURE; goto finally;
+    }
+
+    /**
+     * Add new polygons.
+     * Each new polygon has `nDim+1` vertices.
+     * - One vertex is `opposite0`.
+     * - One vertex in `opposite1`.
+     * - `nDim-1` vertices are selected from the `nDim` vertices in `faceToSplit`.
+     */
+    for (size_t iEx = 0 ; iEx < nVerticesInFace(nDim) ; iEx++) {
+        // Alloc polygon & append PolygonTreeVector
+        PolygonTree* const polygon = PolygonTree__new(nDim);
+        if (!polygon) {
+            status = FAILURE; goto finally;
+        }
+
+        status = PolygonTreeVector__append(
+            this, polygon
+        );
+        if (status) {
+            PolygonTree__delete(polygon);
+            goto finally;
+        }
+
+        for (size_t i = 0 ; i < 2 ; i++) {
+            status = PolygonTree__append_child(
+                neighborPairToFlip[i].polygon,
+                polygon
+            );
+            if (status) {
+                goto finally;
+            }
+        }
+
+        // Set vertices of polygon
+        for (size_t i = 0 ; i < (nVerticesInFace(nDim)-1) ; i++) {
+            if (i < iEx) {
+                polygon->vertices[i] = IndexVector__elements(faceToFlip)[i+0];
+            } else {
+                polygon->vertices[i] = IndexVector__elements(faceToFlip)[i+1];
+            }
+        }
+        polygon->vertices[nVerticesInPolygon(nDim)-2] = neighborPairToFlip[0].opposite;
+        polygon->vertices[nVerticesInPolygon(nDim)-1] = neighborPairToFlip[1].opposite;
+
+        sort__size_t__Array(polygon->vertices, nVerticesInPolygon(nDim));
+    }
+
+    PolygonTree** const newPolygons = PolygonTreeVector__elements(this) + previousPolygonVectorSize;
+
+    /**
+     * Add new faces inside `neighborPairToFlip`
+     * Each new face has `nDim` vertices.
+     * - Two vertex are `opposite` of `neighborPairToFlip`.
+     * - `nDim-2` vertices are selected from the `nDim` vertices in `faceToFlip`.
+     */
+    for (size_t iEx_a = 0       ; iEx_a < nVerticesInFace(nDim) ; iEx_a++)
+    for (size_t iEx_b = iEx_a+1 ; iEx_b < nVerticesInFace(nDim) ; iEx_b++) {
+        // Set vertices of face
+        for (size_t i = 0 ; i < nVerticesInFace(nDim)-2 ; i++) {
+            if (i+0 < iEx_a) {
+                IndexVector__elements(face)[i] = IndexVector__elements(faceToFlip)[i+0];
+            } else if (i+1 < iEx_b) {
+                IndexVector__elements(face)[i] = IndexVector__elements(faceToFlip)[i+1];
+            } else {
+                IndexVector__elements(face)[i] = IndexVector__elements(faceToFlip)[i+2];
+            }
+        }
+        IndexVector__elements(face)[nVerticesInFace(nDim)-2] = neighborPairToFlip[0].opposite;
+        IndexVector__elements(face)[nVerticesInFace(nDim)-1] = neighborPairToFlip[1].opposite;
+
+        sort__size_t__Array(IndexVector__elements(face), nVerticesInFace(nDim));
+
+        // Set to neighborPairMap
+        Neighbor neighborPair[2] = {
+            {IndexVector__elements(faceToFlip)[iEx_a], newPolygons[iEx_b]},
+            {IndexVector__elements(faceToFlip)[iEx_b], newPolygons[iEx_a]}
+        };
+
+        status = NeighborPairMap__set(neighborPairMap, face, neighborPair);
+        if (status) {goto finally;}
+    }
+
+    /**
+     * Update faces outside `neighborPairToFlip`
+     * Each new face has `nDim` vertices.
+     * - One vertex is selected from `opposite` of `neighborPairToFlip`.
+     * - `nDim-1` vertices are selected from the `nDim` vertices in `faceToFlip`.
+     */
+    for (size_t iNeighbor = 0 ; iNeighbor < 2               ; iNeighbor++) {
+        const bool appendToFaceVector
+            = neighborPairToFlip[iNeighbor].opposite != pointToDivide;
+
+        for (size_t iEx = 0       ; iEx < nVerticesInFace(nDim) ; iEx++) {
+            // Set vertices of face
+            for (size_t i = 0 ; i < (nVerticesInFace(nDim)-1) ; i++) {
+                if (i < iEx) {
+                    IndexVector__elements(face)[i] = IndexVector__elements(faceToFlip)[i+0];
+                } else {
+                    IndexVector__elements(face)[i] = IndexVector__elements(faceToFlip)[i+1];
+                }
+            }
+            IndexVector__elements(face)[nVerticesInFace(nDim)-1]
+                = neighborPairToFlip[iNeighbor].opposite;
+
+            sort__size_t__Array(IndexVector__elements(face), nVerticesInFace(nDim));
+
+            // Update neighborPairMap
+            status = NeighborPairMap__update_by_opposite(
+                neighborPairMap,
+                face,
+                IndexVector__elements(faceToFlip)[iEx],
+                neighborPairToFlip[1-iNeighbor].opposite,
+                newPolygons[iEx]
+            );
+            if (status) {goto finally;}
+
+            if (appendToFaceVector) {
+                status = FaceVector__append(faceVector, face);
+                if (status) {
+                    goto finally;
+                }
+            }
+        }
+    }
+
+    // Remove faceToFlip
+    if (!NeighborPairMap__remove(neighborPairMap, faceToFlip)) {
+        status = FAILURE; goto finally;
+    }
+
+finally:
+
+    if (face) {IndexVector__delete(face);}
 
     return status;
 }
