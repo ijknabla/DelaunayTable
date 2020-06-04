@@ -69,6 +69,15 @@ extern int PolygonTreeVector__append(
     PolygonTree* polygon
 );
 
+extern int PolygonTreeVector__divide_at_point(
+    const size_t nDim,
+    PolygonTreeVector* this,
+    const size_t pointToDivide,
+    const Points points,
+    Points__get_coordinates* get_coordinates,
+    PolygonTree* root_polygon,
+    NeighborPairMap* neighborPairMap
+);
 
 
 /// Declarations of static inline functions
