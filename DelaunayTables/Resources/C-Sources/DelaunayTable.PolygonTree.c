@@ -139,7 +139,7 @@ void PolygonTreeVector__delete_elements(
     }
 }
 
-extern int PolygonTreeVector__append(
+int PolygonTreeVector__append(
     PolygonTreeVector* const this,
     PolygonTree* polygon
 ) {
@@ -148,4 +148,51 @@ extern int PolygonTreeVector__append(
         &polygon,
         sizeof(PolygonTree*)
     );
+}
+
+int PolygonTreeVector__divide_at_point(
+    const size_t nDim,
+    PolygonTreeVector* const this,
+    const size_t pointToDivide,
+    const Points points,
+    Points__get_coordinates* const get_coordinates,
+    PolygonTree* const rootPolygon,
+    NeighborPairMap* const neighborPairMap
+) {
+    int status = SUCCESS;
+
+    double* divisionRatio = NULL;
+
+    divisionRatio = (double*) MALLOC(
+        nVerticesInPolygon(nDim) * sizeof(double)
+    );
+    if (!divisionRatio) {
+        status = FAILURE; goto finally;
+    }
+
+    const double* const coordinatesToDivide
+        = get_coordinates(points, pointToDivide);
+
+    PolygonTree* polygonToDivide;
+
+    status = PolygonTree__find(
+        nDim,
+        rootPolygon,
+        coordinatesToDivide,
+        points,
+        get_coordinates,
+        &polygonToDivide,
+        divisionRatio
+    );
+    if (status) {goto finally;}
+
+    if (!polygonToDivide) {
+        status = FAILURE; goto finally;
+    }
+
+finally:
+
+    if (divisionRatio) {FREE(divisionRatio);}
+
+    return status;
 }
