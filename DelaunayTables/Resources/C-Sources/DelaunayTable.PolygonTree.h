@@ -38,11 +38,11 @@ extern int PolygonTree__append_child(
 
 extern int PolygonTree__find(
     const size_t nDim,
-    PolygonTree* root_polygon,
+    PolygonTree* rootPolygon,
     const double* coordinates,
     const Points points,
     Points__get_coordinates* get_coordinates,
-    PolygonTree** found_polygon,
+    PolygonTree** foundPolygon,
     double* divisionRatio
 );
 
@@ -75,7 +75,7 @@ extern int PolygonTreeVector__divide_at_point(
     const size_t pointToDivide,
     const Points points,
     Points__get_coordinates* get_coordinates,
-    PolygonTree* root_polygon,
+    PolygonTree* rootPolygon,
     NeighborPairMap* neighborPairMap
 );
 
