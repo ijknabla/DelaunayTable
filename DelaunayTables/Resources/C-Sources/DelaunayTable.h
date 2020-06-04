@@ -38,3 +38,16 @@ extern int DelaunayTable__get_value(
     const double* u,
           double* y
 );
+
+/// ## DelaunayTable properties
+static inline size_t tablePointSize     (const DelaunayTable* const this) {return this->nPoints;}
+static inline size_t extendedPointSize  (const DelaunayTable* const this) {return nVerticesInPolygon(this->nIn);}
+static inline size_t allPointSize       (const DelaunayTable* const this) {return tablePointSize(this) + extendedPointSize(this);}
+
+static inline size_t tablePointBegin    (const DelaunayTable* const this) {return 0;}
+static inline size_t extendedPointBegin (const DelaunayTable* const this) {return tablePointSize(this);}
+static inline size_t allPointBegin      (const DelaunayTable* const this) {return 0;}
+
+static inline size_t tablePointEnd      (const DelaunayTable* const this) {return tablePointSize(this);}
+static inline size_t extendedPointEnd   (const DelaunayTable* const this) {return allPointSize(this);}
+static inline size_t allPointEnd        (const DelaunayTable* const this) {return allPointSize(this);}
