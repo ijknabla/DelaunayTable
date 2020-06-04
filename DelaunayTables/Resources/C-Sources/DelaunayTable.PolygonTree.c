@@ -936,6 +936,19 @@ int PolygonTreeVector__divide_at_point(
             faceVector
         );
         if (status) {goto finally;}
+    } else { // divisionRatio__on_face(...)
+        status = PolygonTreeVector__divide_polygon_by_face(
+            nDim,
+            this,
+            polygonToDivide,
+            pointToDivide,
+            divisionRatio,
+            points,
+            get_coordinates,
+            neighborPairMap,
+            faceVector
+        );
+        if (status) {goto finally;}
     }
 
     for (size_t i = 0 ; i < (faceVector->size) ; i++) {
