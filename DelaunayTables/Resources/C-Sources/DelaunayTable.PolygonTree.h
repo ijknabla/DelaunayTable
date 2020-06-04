@@ -36,6 +36,16 @@ extern int PolygonTree__append_child(
     PolygonTree* child
 );
 
+extern int PolygonTree__find(
+    const size_t nDim,
+    PolygonTree* root_polygon,
+    const double* coordinates,
+    const Points points,
+    Points__get_coordinates* get_coordinates,
+    PolygonTree** found_polygon,
+    double* divisionRatio
+);
+
 
 /// ## PolygonTreeVector methods
 extern PolygonTreeVector* PolygonTreeVector__new(
