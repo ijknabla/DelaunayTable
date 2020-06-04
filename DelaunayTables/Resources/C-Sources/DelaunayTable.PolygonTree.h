@@ -46,6 +46,14 @@ extern int PolygonTree__find(
     double* divisionRatio
 );
 
+extern int PolygonTree__get_around(
+    const size_t nDim,
+    const PolygonTree* polygon,
+    const IndexVector* overlapVertices,
+    const NeighborPairMap* neighborPairMap,
+    PolygonTreeVector* aroundPolygons
+);
+
 
 /// ## PolygonTreeVector methods
 extern PolygonTreeVector* PolygonTreeVector__new(
