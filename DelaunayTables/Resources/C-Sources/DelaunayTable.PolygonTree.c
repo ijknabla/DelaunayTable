@@ -464,6 +464,27 @@ int PolygonTreeVector__divide_at_point(
         if (status) {goto finally;}
     }
 
+    for (size_t i = 0 ; i < (faceVector->size) ; i++) {
+        IndexVector* const face = FaceVector__elements(faceVector)[i];
+
+        bool validFace;
+
+        status = Face__is_valid(
+            face,
+            neighborPairMap,
+            points,
+            get_coordinates,
+            &validFace
+        );
+        if (status) {
+            goto finally;
+        }
+
+        if (validFace) {
+            continue;
+        }
+    }
+
 finally:
 
     if (faceVector)    {FaceVector__delete(faceVector);}
