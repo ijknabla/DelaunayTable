@@ -32,7 +32,7 @@ extern void DelaunayTable__delete(
 );
 
 extern int DelaunayTable__get_value(
-    DelaunayTable** this,
+    DelaunayTable* this,
     size_t nIn,
     size_t nOut,
     const double* u,
