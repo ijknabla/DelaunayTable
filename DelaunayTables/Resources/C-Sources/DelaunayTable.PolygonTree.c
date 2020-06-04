@@ -408,6 +408,233 @@ finally:
     return status;
 }
 
+static int PolygonTreeVector__divide_polygon_by_face(
+    const size_t nDim,
+    PolygonTreeVector* const this,
+    PolygonTree* const polygonToDivide,
+    const size_t pointToDivide,
+    const double* divisionRatio,
+    const Points points,
+    Points__get_coordinates* const get_coordinates,
+    NeighborPairMap* const neighborPairMap,
+    FaceVector* const faceVector
+) {
+    int status = SUCCESS;
+
+    const size_t previousPolygonVectorSize = this->size;
+
+    // Resources
+    PolygonTreeVector* aroundPolygons  = NULL;
+    IndexVector*       overlapVertices = NULL;
+    IndexVector*       face            = NULL;
+    bool*              faceChecked     = NULL;
+
+    aroundPolygons = PolygonTreeVector__new(0);
+    if (!aroundPolygons) {
+        status = FAILURE; goto finally;
+    }
+
+    overlapVertices = IndexVector__new(0);
+    if (!overlapVertices) {
+        status = FAILURE; goto finally;
+    }
+
+    face = IndexVector__new(nVerticesInFace(nDim));
+    if (!face) {
+        status = FAILURE; goto finally;
+    }
+
+    // Get `overlapVertices`
+    for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+        if (double__compare(divisionRatio[i], 0.0) != 0) {
+            status = IndexVector__append(
+                overlapVertices,
+                polygonToDivide->vertices[i]
+            );
+            if (status) {
+                goto finally;
+            }
+        }
+    }
+
+    // Get `aroundPolygons`
+    status = PolygonTree__get_around(
+        nDim,
+        polygonToDivide,
+        overlapVertices,
+        neighborPairMap,
+        aroundPolygons
+    );
+    if (status) {
+        goto finally;
+    }
+
+    const size_t nAroundPolygons  = aroundPolygons->size;
+    const size_t nOverlapVertices = overlapVertices->size;
+
+    /**
+     * Add new polygons.
+     * Repeat new polygons creation for all `aroundPolygon` in `aroundPolygons`.
+     * - Each new polygon has `nDim+1` vertices.
+     * - - One vertex is `pointToDivide`.
+     * - - `nOverlapVertices-1`      vertices are selected from the vertices in `overlapVertices`.
+     * - - `nDim+1-nOverlapVertices` vertices are selected from non-overlap vertices of `aroundPolygon`.
+     */
+    for (size_t iAround = 0 ; iAround < nAroundPolygons ; iAround++) {
+        PolygonTree* const aroundPolygon
+            = PolygonTreeVector__elements(aroundPolygons)[iAround];
+
+        for (size_t iEx = 0 ; iEx < nOverlapVertices ; iEx++) {
+            // Allocate polygon & append PolygonTrees Vector
+            PolygonTree* polygon = PolygonTree__new(nDim);
+            if (!polygon) {
+                status = FAILURE; goto finally;
+            }
+
+            status = PolygonTreeVector__append(
+                this,
+                polygon
+            );
+            if (status) {
+                PolygonTree__delete(polygon);
+                goto finally;
+            }
+
+            status = PolygonTree__append_child(
+                aroundPolygon,
+                polygon
+            );
+            if (status) {
+                goto finally;
+            }
+
+            // Set vertices of polygon
+            const size_t vertexToExclude = IndexVector__elements(overlapVertices)[iEx];
+
+            size_t offset = 0;
+            for (size_t i = 0 ; i < (nVerticesInPolygon(nDim)-1) ; i++) {
+                if (aroundPolygon->vertices[i+offset] == vertexToExclude) {
+                    offset++;
+                }
+                polygon->vertices[i] = aroundPolygon->vertices[i+offset];;
+            }
+            if (offset == 0) {
+                status = FAILURE; goto finally;
+            }
+            polygon->vertices[nVerticesInPolygon(nDim)-1] = pointToDivide;
+
+            sort__size_t__Array(polygon->vertices, nVerticesInPolygon(nDim));
+        }
+    }
+
+    PolygonTree** const newPolygons = PolygonTreeVector__elements(this) + previousPolygonVectorSize;
+
+    /**
+     * Add new faces inside polygon
+     */
+    const size_t nFaces = nAroundPolygons * nOverlapVertices * nVerticesInPolygon(nDim);
+    faceChecked = (bool*) CALLOC(nFaces, sizeof(bool));
+    if (!faceChecked) {
+        status = FAILURE; goto finally;
+    }
+
+    for (size_t iFace_a = 0 ; iFace_a < nFaces ; iFace_a++) {
+        if (faceChecked[iFace_a]) {continue;}
+
+        size_t iPolygon_a = iFace_a / nVerticesInPolygon(nDim);
+        size_t iEx_a      = iFace_a % nVerticesInPolygon(nDim);
+
+        PolygonTree* polygon_a = newPolygons[iPolygon_a];
+        size_t opposite_a = polygon_a->vertices[iEx_a];
+
+        if (opposite_a == pointToDivide) {continue;}
+
+        for (size_t i = 0 ; i < nVerticesInFace(nDim) ; i++) {
+            if (i < iEx_a) {
+                IndexVector__elements(face)[i] = polygon_a->vertices[i+0];
+            } else {
+                IndexVector__elements(face)[i] = polygon_a->vertices[i+1];
+            }
+        };
+
+        for (size_t iFace_b = iFace_a+1 ; iFace_b < nFaces ; iFace_b++) {
+            size_t iPolygon_b = iFace_b / nVerticesInPolygon(nDim);
+            size_t iEx_b      = iFace_b % nVerticesInPolygon(nDim);
+
+            PolygonTree* polygon_b = newPolygons[iPolygon_b];
+            size_t opposite_b = polygon_b->vertices[iEx_b];
+
+            if (contains__size_t__Array(
+                nVerticesInFace(nDim), IndexVector__elements(face),
+                1                    , &opposite_b
+            )) {continue;}
+
+            if (!contains__size_t__Array(
+                nVerticesInPolygon(nDim), polygon_b->vertices,
+                nVerticesInFace(nDim)   , IndexVector__elements(face)
+            )) {continue;}
+
+            faceChecked[iFace_b] = true;
+
+            Neighbor neighborPair[2] = {
+                {opposite_a, polygon_a},
+                {opposite_b, polygon_b}
+            };
+
+            status = NeighborPairMap__set(
+                neighborPairMap, face, neighborPair
+            );
+            if (status) {goto finally;}
+        }
+    }
+
+    /**
+     * Update faces outside polygon
+     * Repeat face update for all `aroundPolygon` in `aroundPolygons`.
+     * - Each face has `nDim` vertices.
+     * - - `nOverlapVertices-1`      vertices are selected from the vertices in `overlapVertices`.
+     * - - `nDim+1-nOverlapVertices` vertices are selected from non-overlap vertices of `aroundPolygon`.
+     */
+    for (size_t iAround = 0 ; iAround < nAroundPolygons  ; iAround++)
+    for (size_t iEx     = 0 ; iEx     < nOverlapVertices ; iEx++    ) {
+        PolygonTree* const newPolygon = newPolygons[iAround * nOverlapVertices + iEx];
+        const size_t vertexToUpdate = IndexVector__elements(overlapVertices)[iEx];
+
+        // Set vertices of face
+        size_t offset = 0;
+        for (size_t i = 0 ; i < nVerticesInFace(nDim) ; i++) {
+            if (newPolygon->vertices[i+offset] == pointToDivide) {
+                offset++;
+            }
+            IndexVector__elements(face)[i] = newPolygon->vertices[i+offset];
+        }
+        if (offset == 0) {
+            status = FAILURE; goto finally;
+        }
+
+        // Update neighbor
+        status = NeighborPairMap__update_by_opposite(
+            neighborPairMap,
+            face,
+            vertexToUpdate,
+            pointToDivide,
+            newPolygon
+        );
+        if (status) {
+            goto finally;
+        }
+    }
+
+finally:
+
+    if (aroundPolygons)  {PolygonTreeVector__delete(aroundPolygons);}
+    if (overlapVertices) {IndexVector__delete(overlapVertices);}
+    if (face)            {IndexVector__delete(face);}
+    if (faceChecked)     {FREE(faceChecked);}
+
+    return status;
+}
+
 static int Face__is_valid(
     const IndexVector* const face,
     const NeighborPairMap* const neighborPairMap,
