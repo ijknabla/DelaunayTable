@@ -7,6 +7,11 @@
 #include <stdbool.h>
 
 
+typedef void* Points;
+
+typedef double* Points__get_coordinates (const Points, size_t index);
+
+
 /// relative tolerance for `double__compare`
 static const double rel_tol = 1.0e-9;
 
