@@ -117,3 +117,18 @@ add_test(
     NAME "PolygonTree.Binary"
     COMMAND $<TARGET_FILE:testPolygonTree__Binary>
 )
+
+
+add_executable(
+    testSimple_I2O1x4
+    Simple_I2O1x4.c
+)
+target_link_libraries(
+    testSimple_I2O1x4
+    DelaunayTable
+)
+
+add_test(
+    NAME "Simple.I2O1.4"
+    COMMAND $<TARGET_FILE:testSimple_I2O1x4>
+)
