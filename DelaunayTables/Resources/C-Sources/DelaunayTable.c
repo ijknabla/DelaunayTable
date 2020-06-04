@@ -104,15 +104,15 @@ void DelaunayTable__delete(
 }
 
 /// static function implementations
-static double* DelaunayTable__get_coordinates(
+static const double* DelaunayTable__get_coordinates(
     const DelaunayTable* const this,
     const size_t iPoint
 ) {
     if (tablePointBegin(this) <= iPoint && iPoint < tablePointEnd(this)) {
-        return (double*) (this->table) + (this->nIn + this->nOut) * (iPoint - tablePointBegin(this));
+        return (this->table) + (this->nIn + this->nOut) * (iPoint - tablePointBegin(this));
     } else if (extendedPointBegin(this) <= iPoint && iPoint < extendedPointEnd(this)
     ) {
-        return (double*) (this->table_extended) + (this->nIn) * (iPoint - extendedPointBegin(this));
+        return (const double*) (this->table_extended) + (this->nIn) * (iPoint - extendedPointBegin(this));
     } else {
         return NULL;
     }
@@ -121,6 +121,8 @@ static double* DelaunayTable__get_coordinates(
 static int DelaunayTable__extend_table(
     DelaunayTable* this
 ) {
+    const size_t nDim = this->nIn;
+
     // Calcurate maxAbs
     double maxAbs = 1.0;  // minimum maxAbs is 1.0
     for (
@@ -132,18 +134,16 @@ static int DelaunayTable__extend_table(
             this, iPoint
         );
 
-        for (size_t i = 0 ; i < (this->nIn) ; i++) {
+        for (size_t i = 0 ; i < nDim ; i++) {
             maxAbs = double__max(maxAbs, double__abs(coords[i]));
         }
     }
 
     // Assign extended table data
-    for (size_t iPoint = 0 ; iPoint < nVerticesInPolygon(this->nIn) ; iPoint++) {
-        double* const coords = DelaunayTable__get_coordinates(
-            this, extendedPointBegin(this)+iPoint
-        );
+    for (size_t iPoint = 0 ; iPoint < nVerticesInPolygon(nDim) ; iPoint++) {
+        double* const coords = (this->table_extended) + iPoint * nDim;
 
-        for (size_t i = 0 ; i < (this->nIn) ; i++) {
+        for (size_t i = 0 ; i < nDim ; i++) {
             if (iPoint == 0) {
                 coords[i] = -4.0 * maxAbs;
             } else if (iPoint == (i+1)) {
