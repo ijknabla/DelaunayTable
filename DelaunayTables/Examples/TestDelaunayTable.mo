@@ -17,6 +17,6 @@ model TestDelaunayTable
 
 equation
 
-  delaunayTable.u[:] = zeros(delaunayTable.nin);
+  delaunayTable.u[1] = mod(time, 1);
 
 end TestDelaunayTable;
