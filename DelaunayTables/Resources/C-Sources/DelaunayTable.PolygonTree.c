@@ -197,6 +197,151 @@ int PolygonTreeVector__append(
     );
 }
 
+static int PolygonTreeVector__divide_polygon_inside(
+    const size_t nDim,
+    PolygonTreeVector* this,
+    PolygonTree* const polygonToDivide,
+    const size_t pointToDivide,
+    const Points points,
+    Points__get_coordinates* const get_coordinates,
+    NeighborPairMap* const neighborPairMap,
+    FaceVector* const faceVector
+) {
+    int status = SUCCESS;
+
+    const size_t previousPolygonVectorSize = this->size;
+
+    IndexVector* face = IndexVector__new(nVerticesInFace(nDim));
+    if (!face) {
+        status = FAILURE; goto finally;
+    }
+
+    /**
+     * Add new polygons.
+     * Each new polygon has `nDim+1` vertices.
+     * - One vertex is `pointToDivide`.
+     * - `nDim` vertices are selected from the `nDim+1` vertices in `polygonToDivide`.
+     */
+    for (size_t iEx = 0 ; iEx < nVerticesInPolygon(nDim) ; iEx++) {
+        // Alloc polygon & append PolygonTreeVector
+        PolygonTree* const polygon = PolygonTree__new(nDim);
+        if (!polygon) {
+            status = FAILURE; goto finally;
+        }
+
+        status = PolygonTreeVector__append(
+            this, polygon
+        );
+        if (status) {
+            PolygonTree__delete(polygon);
+            goto finally;
+        }
+
+        status = PolygonTree__append_child(
+            polygonToDivide,
+            polygon
+        );
+        if (status) {
+            goto finally;
+        }
+
+        // Set vertices of polygon
+        for (size_t i = 0 ; i < (nVerticesInPolygon(nDim)-1) ; i++) {
+            if (i < iEx) {
+                polygon->vertices[i] = polygonToDivide->vertices[i+0];
+            } else {
+                polygon->vertices[i] = polygonToDivide->vertices[i+1];
+            }
+        }
+        polygon->vertices[nVerticesInPolygon(nDim)-1] = pointToDivide;
+
+        sort__size_t__Array(polygon->vertices, nVerticesInPolygon(nDim));
+    }
+
+    PolygonTree** const newPolygons = PolygonTreeVector__elements(this) + previousPolygonVectorSize;
+
+    /**
+     * Add new faces inside `polygonToDivide`
+     * Each new face has `nDim` vertices.
+     * - One vertex is `pointToDivide`.
+     * - `nDim-1` vertices are selected from the `nDim+1` vertices in `polygonToDivide`.
+     */
+    for (size_t iEx_a = 0       ; iEx_a < nVerticesInPolygon(nDim) ; iEx_a++)
+    for (size_t iEx_b = iEx_a+1 ; iEx_b < nVerticesInPolygon(nDim) ; iEx_b++)
+    {
+        // Set vertices of face
+        for (size_t i = 0 ; i < (nVerticesInFace(nDim)-1) ; i++) {
+            if (i+0 < iEx_a) {
+                IndexVector__elements(face)[i] = polygonToDivide->vertices[i+0];
+            } else if (i+1 < iEx_b) {
+                IndexVector__elements(face)[i] = polygonToDivide->vertices[i+1];
+            } else {
+                IndexVector__elements(face)[i] = polygonToDivide->vertices[i+2];
+            }
+        }
+        IndexVector__elements(face)[nVerticesInFace(nDim)-1] = pointToDivide;
+
+        sort__size_t__Array(IndexVector__elements(face), nVerticesInFace(nDim));
+
+        // Set to neighborPairMap
+
+        Neighbor neighborPair[2] = {
+            {polygonToDivide->vertices[iEx_a], newPolygons[iEx_b]},
+            {polygonToDivide->vertices[iEx_b], newPolygons[iEx_a]}
+        };
+
+        status = NeighborPairMap__set(
+            neighborPairMap,
+            face,
+            neighborPair
+        );
+        if (status) {goto finally;}
+    }
+
+    /**
+     * Update faces outside `polygonToDivide`
+     * Each new face has `nDim` vertices.
+     * - `nDim` vertices are selected from the `nDim+1` vertices in `polygonToDivide`.
+     */
+    for (size_t iEx = 0 ; iEx < nVerticesInPolygon(nDim) ; iEx++) {
+        // Set vertices of face
+        for (size_t i = 0 ; i < nVerticesInFace(nDim) ; i++) {
+            if (i < iEx) {
+                IndexVector__elements(face)[i] = polygonToDivide->vertices[i+0];
+            } else {
+                IndexVector__elements(face)[i] = polygonToDivide->vertices[i+1];
+            }
+        }
+
+        // Update neighborPairMap
+
+        status = NeighborPairMap__update_by_opposite(
+            neighborPairMap,
+            face,
+            polygonToDivide->vertices[iEx],  // opposite_old
+            pointToDivide,                   // opposite_new
+            newPolygons[iEx]                 // polygon_new
+        );
+        if (status) {
+            goto finally;
+        }
+
+        status = FaceVector__append(
+            faceVector,
+            face
+        );
+        if (status) {
+            goto finally;
+        }
+    }
+
+finally:
+
+    if (face) {IndexVector__delete(face);}
+
+    return status;
+}
+
 int PolygonTreeVector__divide_at_point(
     const size_t nDim,
     PolygonTreeVector* const this,
