@@ -91,3 +91,47 @@ static void ExternalDelaunayTable__destructor(
         DelaunayTable__delete(this);
     }
 }
+
+static void ExternalDelaunayTable__get_value(
+    DelaunayTable* const this,
+    const modelica_integer nIn,
+    const modelica_integer nOut,
+    const modelica_real* u,
+          modelica_real* y
+) {
+    if (!(0 < nIn)) {
+        ModelicaFormatError(
+            "nIn must be positive. got %d\n"
+            "at %s:%d",
+            nIn,
+            __FILE__, __LINE__
+        );
+    }
+
+    if (!(0 < nOut)) {
+        ModelicaFormatError(
+            "nOut must be positive. got %d\n"
+            "at %s:%d",
+            nOut,
+            __FILE__, __LINE__
+        );
+    }
+
+    int status = SUCCESS;
+
+    status = DelaunayTable__get_value(
+        this,
+        nIn,
+        nOut,
+        u,
+        y
+    );
+    if (status) {
+        ModelicaFormatError(
+            "Error at ExternalDelaunayTable__get_value((DelaunayTable*) %p, %d, %d, (modelica_real*) %p, (modelica_real*) %p)\n"
+            "at %s:%d",
+            this, nIn, nOut, u, y,
+            __FILE__, __LINE__
+        );
+    }
+}
