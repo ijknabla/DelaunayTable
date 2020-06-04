@@ -1,6 +1,53 @@
 
 #include "DelaunayTable.PolygonTree.h"
 
+#include "DelaunayTable.IndexVector.h"
+
+
+/// # FaceVector
+typedef Vector FaceVector;
+
+static FaceVector* FaceVector__new(
+    const size_t size
+) {
+    return Vector__new(
+        size,
+        sizeof(IndexVector*)
+    );
+}
+
+static inline IndexVector** FaceVector__elements(
+    const FaceVector* const this
+) {
+    return Vector__elements(this, IndexVector*);
+}
+
+static void FaceVector__delete(
+    FaceVector* const this
+) {
+    for (size_t i = 0 ; i < (this->size) ; i++) {
+        IndexVector__delete(FaceVector__elements(this)[i]);
+    }
+
+    Vector__delete(this);
+}
+
+static int FaceVector__append(
+    FaceVector* const this,
+    IndexVector* const face
+) {
+    IndexVector* copied = IndexVector__copy(face);
+    if (!copied) {
+        return FAILURE;
+    }
+
+    return Vector__append(
+        this,
+        &copied,
+        sizeof(IndexVector*)
+    );
+}
+
 
 /// ## PolygonTree methods
 PolygonTree* PolygonTree__new(
