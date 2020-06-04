@@ -68,6 +68,30 @@ extern int insideCircumsphereOfPolygon(
     bool* inside
 );
 
+static inline bool divisionRatio__inside(
+    const size_t nDim,
+    const double* const divisionRatio
+) {
+    for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+        if (double__compare(divisionRatio[i], 0.0) < 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static inline bool divisionRatio__on_face(
+    const size_t nDim,
+    const double* const divisionRatio
+) {
+    for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+        const int ratio = double__compare(divisionRatio[i], 0.0);
+        if (ratio <  0) {return false;}
+        if (ratio == 0) {return true;}
+    }
+    return false;
+}
+
 
 /// # LAPACK external routines
 typedef int    LAPACK_INTEGER;
