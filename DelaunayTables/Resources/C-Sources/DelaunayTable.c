@@ -118,6 +118,82 @@ void DelaunayTable__delete(
     FREE(this);
 }
 
+int DelaunayTable__get_value(
+    DelaunayTable* const this,
+    size_t nIn,
+    size_t nOut,
+    const double* u,
+          double* y
+) {
+    // Assertion for nIn, nOut
+    if (nIn != (this->nIn)) {
+        return FAILURE;
+    }
+    if (nOut != (this->nOut)) {
+        return FAILURE;
+    }
+
+    const size_t nDim = this->nIn;
+
+    int status = SUCCESS;
+
+    double* divisionRatio = (double*) MALLOC(nVerticesInPolygon(nDim) * sizeof(double));
+    if (!divisionRatio) {
+        status = FAILURE; goto finally;
+    }
+
+    PolygonTree* polygon;
+
+    status = PolygonTree__find(
+        nDim,
+        PolygonTreeVector__elements(this->polygonTreeVector)[0],
+        u,
+        this,
+        (Points__get_coordinates*) DelaunayTable__get_coordinates,
+        &polygon,
+        divisionRatio
+    );
+    if (status) {
+        goto finally;
+    }
+
+    if (!polygon) {
+        status = FAILURE; goto finally;
+    }
+
+    status = ensure_polygon_on_table(
+        this,
+        u,
+        &polygon,
+        divisionRatio
+    );
+    if (status) {
+        goto finally;
+    }
+
+    /// # interpolate y[:]
+    /// ## initialize y[:]
+    for (size_t iOut = 0 ; iOut < nOut ; iOut++) {
+        y[iOut] = 0.0;
+    }
+    /// ## linear interpolation by `divisionRatio`
+    for (size_t iVertex = 0 ; iVertex < nVerticesInPolygon(nDim) ; iVertex++) {
+        const double* coords = DelaunayTable__get_coordinates(
+            this,
+            polygon->vertices[iVertex]
+        );
+        for (size_t iOut = 0 ; iOut < nOut ; iOut++) {
+            y[iOut] += divisionRatio[iVertex] * coords[this->nIn + iOut];
+        }
+    }
+
+finally:
+
+    if (divisionRatio) {FREE(divisionRatio);}
+
+    return status;
+}
+
 /// static function implementations
 static const double* DelaunayTable__get_coordinates(
     const DelaunayTable* const this,
