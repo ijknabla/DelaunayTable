@@ -40,6 +40,17 @@ extern void IndexVector__delete(
     Vector__delete(this);
 }
 
+int IndexVector__append(
+    IndexVector* const this,
+    const size_t index
+) {
+    return Vector__append(
+        this,
+        (Sequence__element) &index,
+        sizeof(size_t)
+    );
+}
+
 bool IndexVector__equality(
     const IndexVector* const v0,
     const IndexVector* const v1

@@ -43,6 +43,11 @@ extern void IndexVector__delete(
     IndexVector* this
 );
 
+extern int IndexVector__append(
+    IndexVector* this,
+    const size_t index
+);
+
 extern bool IndexVector__equality(
     const IndexVector* v0,
     const IndexVector* v1
