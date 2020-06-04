@@ -188,6 +188,14 @@ int PolygonTree__get_around(
         status = FAILURE; goto finally;
     }
 
+    status = PolygonTreeVector__append(
+        aroundPolygons,
+        (PolygonTree*) polygon
+    );
+    if (status) {
+        goto finally;
+    }
+
     for (size_t iEx = 0 ; iEx < nVerticesInPolygon(nDim) ; iEx++) {
         for (size_t i = 0 ; i < nVerticesInFace(nDim) ; i++) {
             if (i < iEx) {
@@ -210,10 +218,11 @@ int PolygonTree__get_around(
         }
 
         for (size_t i = 0 ; i < 2 ; i++) {
-            if (neighborPair[i].polygon) {
+            PolygonTree* candidate = neighborPair[i].polygon;
+            if (candidate && candidate != polygon) {
                 status = PolygonTree__get_around(
                     nDim,
-                    neighborPair[i].polygon,
+                    candidate,
                     overlapVertices,
                     neighborPairMap,
                     aroundPolygons
