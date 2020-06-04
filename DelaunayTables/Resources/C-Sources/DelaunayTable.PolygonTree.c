@@ -416,7 +416,22 @@ static int PolygonTreeVector__flip_face(
 
     const size_t previousPolygonVectorSize = this->size;
 
-    IndexVector* face = IndexVector__new(nVerticesInFace(nDim));
+    IndexVector* face = NULL;
+
+    // Early return (check face is valid)
+    bool validFace;
+
+    status = Face__is_valid(
+        faceToFlip,
+        neighborPairMap,
+        points,
+        get_coordinates,
+        &validFace
+    );
+    if (status)    {goto finally;}
+    if (validFace) {goto finally;}
+
+    face = IndexVector__new(nVerticesInFace(nDim));
     if (!face) {
         status = FAILURE; goto finally;
     }
@@ -631,29 +646,10 @@ int PolygonTreeVector__divide_at_point(
     }
 
     for (size_t i = 0 ; i < (faceVector->size) ; i++) {
-        IndexVector* const face = FaceVector__elements(faceVector)[i];
-
-        bool validFace;
-
-        status = Face__is_valid(
-            face,
-            neighborPairMap,
-            points,
-            get_coordinates,
-            &validFace
-        );
-        if (status) {
-            goto finally;
-        }
-
-        if (validFace) {
-            continue;
-        }
-
         status = PolygonTreeVector__flip_face(
             nDim,
             this,
-            face,
+            FaceVector__elements(faceVector)[i],
             pointToDivide,
             points,
             get_coordinates,
