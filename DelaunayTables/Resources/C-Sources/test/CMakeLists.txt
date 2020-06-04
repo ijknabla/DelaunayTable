@@ -46,7 +46,7 @@ add_test(
 
 add_executable(
     testDivisionRatio__2D
-    divisionRatio__2D.c
+    DivisionRatio__2D.c
 )
 target_link_libraries(
     testDivisionRatio__2D
@@ -54,14 +54,14 @@ target_link_libraries(
 )
 
 add_test(
-    NAME "divisionRatio.2D"
+    NAME "DivisionRatio.2D"
     COMMAND $<TARGET_FILE:testDivisionRatio__2D>
 )
 
 
 add_executable(
     testDivisionRatio__4D
-    divisionRatio__4D.c
+    DivisionRatio__4D.c
 )
 target_link_libraries(
     testDivisionRatio__4D
@@ -69,14 +69,14 @@ target_link_libraries(
 )
 
 add_test(
-    NAME "divisionRatio.4D"
+    NAME "DivisionRatio.4D"
     COMMAND $<TARGET_FILE:testDivisionRatio__4D>
 )
 
 
 add_executable(
     testCircumsphere__2D
-    circumsphere__2D.c
+    Circumsphere__2D.c
 )
 target_link_libraries(
     testCircumsphere__2D
@@ -84,14 +84,14 @@ target_link_libraries(
 )
 
 add_test(
-    NAME "circumsphere.2D"
+    NAME "Circumsphere.2D"
     COMMAND $<TARGET_FILE:testCircumsphere__2D>
 )
 
 
 add_executable(
     testCircumsphere__4D
-    circumsphere__4D.c
+    Circumsphere__4D.c
 )
 target_link_libraries(
     testCircumsphere__4D
@@ -99,7 +99,7 @@ target_link_libraries(
 )
 
 add_test(
-    NAME "circumsphere.4D"
+    NAME "Circumsphere.4D"
     COMMAND $<TARGET_FILE:testCircumsphere__4D>
 )
 
@@ -116,4 +116,19 @@ target_link_libraries(
 add_test(
     NAME "PolygonTree.Binary"
     COMMAND $<TARGET_FILE:testPolygonTree__Binary>
+)
+
+
+add_executable(
+    testSimple_I2O1x4
+    Simple_I2O1x4.c
+)
+target_link_libraries(
+    testSimple_I2O1x4
+    DelaunayTable
+)
+
+add_test(
+    NAME "Simple.I2O1x4"
+    COMMAND $<TARGET_FILE:testSimple_I2O1x4>
 )

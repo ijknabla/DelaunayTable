@@ -9,7 +9,7 @@
 
 typedef void* Points;
 
-typedef double* Points__get_coordinates (const Points, size_t index);
+typedef const double* Points__get_coordinates (const Points, size_t index);
 
 
 /// relative tolerance for `double__compare`
