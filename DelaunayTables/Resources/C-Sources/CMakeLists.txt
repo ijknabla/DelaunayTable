@@ -7,6 +7,7 @@ add_library(
     DelaunayTable.PolygonTree.c
     DelaunayTable.Neighbor.c
     DelaunayTable.IO.c
+    DelaunayTable.c
 )
 
 target_include_directories(
