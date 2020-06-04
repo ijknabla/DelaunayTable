@@ -300,7 +300,7 @@ static int PolygonTreeVector__divide_polygon_inside(
 
     /**
      * Update faces outside `polygonToDivide`
-     * Each new face has `nDim` vertices.
+     * Each face has `nDim` vertices.
      * - `nDim` vertices are selected from the `nDim+1` vertices in `polygonToDivide`.
      */
     for (size_t iEx = 0 ; iEx < nVerticesInPolygon(nDim) ; iEx++) {
