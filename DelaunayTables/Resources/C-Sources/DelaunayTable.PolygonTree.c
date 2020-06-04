@@ -342,6 +342,72 @@ finally:
     return status;
 }
 
+static int PolygonTree__get_around(
+    const size_t nDim,
+    const PolygonTree* const polygon,
+    const IndexVector* const overlapVertices,
+    const NeighborPairMap* const neighborPairMap,
+    PolygonTreeVector* const aroundPolygons
+) {
+    // Early return
+    for (size_t i = 0 ; i < (aroundPolygons->size) ; i++) {
+        if (polygon == PolygonTreeVector__elements(aroundPolygons)[i]) {
+            return SUCCESS;
+        }
+    }
+
+    int status = SUCCESS;
+
+    // resources
+    IndexVector* face = IndexVector__new(nVerticesInFace(nDim));
+    if (!face) {
+        status = FAILURE; goto finally;
+    }
+
+    for (size_t iEx = 0 ; iEx < nVerticesInPolygon(nDim) ; iEx++) {
+        for (size_t i = 0 ; i < nVerticesInFace(nDim) ; i++) {
+            if (i < iEx) {
+                IndexVector__elements(face)[i] = polygon->vertices[i+0];
+            } else {
+                IndexVector__elements(face)[i] = polygon->vertices[i+1];
+            }
+        }
+
+        if (!contains__size_t__Array(
+            nVerticesInFace(nDim), IndexVector__elements(face),
+            overlapVertices->size, IndexVector__elements(overlapVertices)
+        )) {
+            continue;
+        }
+
+        Neighbor* neighborPair;
+        if (!NeighborPairMap__get(neighborPairMap, face, &neighborPair)) {
+            status = FAILURE; goto finally;
+        }
+
+        for (size_t i = 0 ; i < 2 ; i++) {
+            if (neighborPair[i].polygon) {
+                status = PolygonTree__get_around(
+                    nDim,
+                    neighborPair[i].polygon,
+                    overlapVertices,
+                    neighborPairMap,
+                    aroundPolygons
+                );
+                if (status) {
+                    goto finally;
+                }
+            }
+        }
+    }
+
+finally:
+
+    if (face) {IndexVector__delete(face);}
+
+    return status;
+}
+
 static int Face__is_valid(
     const IndexVector* const face,
     const NeighborPairMap* const neighborPairMap,
