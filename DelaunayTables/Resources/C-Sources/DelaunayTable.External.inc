@@ -87,6 +87,7 @@ static void ExternalDelaunayTable__destructor(
     DelaunayTable* const this
 ) {
     if (this) {
+        FREE((void*) this->table);
         DelaunayTable__delete(this);
     }
 }
