@@ -7,9 +7,9 @@
 
 #define u2y(u1, u2) ((u1) * 1.0 + (u2) * 2.0)
 
-static const int nIn = 2;
-static const int nOut = 1;
-static const int nPoints = 4;
+#define nIn     (2)
+#define nOut    (1)
+#define nPoints (4)
 
 static const size_t N = 64+1;
 
