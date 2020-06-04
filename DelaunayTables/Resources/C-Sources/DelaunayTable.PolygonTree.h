@@ -36,6 +36,16 @@ extern int PolygonTree__append_child(
     PolygonTree* child
 );
 
+extern int PolygonTree__find(
+    const size_t nDim,
+    PolygonTree* rootPolygon,
+    const double* coordinates,
+    const Points points,
+    Points__get_coordinates* get_coordinates,
+    PolygonTree** foundPolygon,
+    double* divisionRatio
+);
+
 
 /// ## PolygonTreeVector methods
 extern PolygonTreeVector* PolygonTreeVector__new(
@@ -59,6 +69,15 @@ extern int PolygonTreeVector__append(
     PolygonTree* polygon
 );
 
+extern int PolygonTreeVector__divide_at_point(
+    const size_t nDim,
+    PolygonTreeVector* this,
+    const size_t pointToDivide,
+    const Points points,
+    Points__get_coordinates* get_coordinates,
+    PolygonTree* rootPolygon,
+    NeighborPairMap* neighborPairMap
+);
 
 
 /// Declarations of static inline functions

@@ -7,11 +7,24 @@
 #include <stddef.h>
 
 
-/// # Utility function
+/// # Utility functions
 extern void sort__size_t__Array(
     size_t* sizes,
     const size_t nSizes
 );
+
+static inline bool contains__size_t__Array(
+    const size_t        nSizes0,
+    const size_t* const sizes0,
+    const size_t        nSizes1,
+    const size_t* const sizes1
+) {
+    size_t i1 = 0;
+    for (size_t i0 = 0 ; i0 < nSizes0 ; i0++) {
+        if (sizes0[i0] == sizes1[i1]) {i1++;}
+    }
+    return i1 == nSizes1;
+}
 
 
 /// # IndexVector
@@ -28,6 +41,11 @@ extern IndexVector* IndexVector__copy(
 
 extern void IndexVector__delete(
     IndexVector* this
+);
+
+extern int IndexVector__append(
+    IndexVector* this,
+    const size_t index
 );
 
 extern bool IndexVector__equality(
