@@ -649,6 +649,20 @@ int PolygonTreeVector__divide_at_point(
         if (validFace) {
             continue;
         }
+
+        status = PolygonTreeVector__flip_face(
+            nDim,
+            this,
+            face,
+            pointToDivide,
+            points,
+            get_coordinates,
+            neighborPairMap,
+            faceVector
+        );
+        if (status) {
+            goto finally;
+        }
     }
 
 finally:
