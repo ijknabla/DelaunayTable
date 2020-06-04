@@ -20,7 +20,11 @@ static inline bool contains__size_t__Array(
     const size_t* const sizes1
 ) {
     size_t i1 = 0;
-    for (size_t i0 = 0 ; i0 < nSizes0 ; i0++) {
+    for (
+        size_t i0 = 0;
+        (i0 < nSizes0 && i1 < nSizes1);
+        i0++
+    ) {
         if (sizes0[i0] == sizes1[i1]) {i1++;}
     }
     return i1 == nSizes1;
