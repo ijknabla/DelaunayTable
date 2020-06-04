@@ -95,17 +95,15 @@ int PolygonTree__append_child(
     return PolygonTreeVector__append(this->children, child);
 }
 
-int PolygonTree__find(
+int PolygonTree__calculate_divisionRatio(
     const size_t nDim,
-    PolygonTree* const rootPolygon,
+    const PolygonTree* const this,
     const double* const coordinates,
     const Points points,
     Points__get_coordinates* const get_coordinates,
-    PolygonTree** const foundPolygon,
     double* const divisionRatio
 ) {
     int status = SUCCESS;
-    *foundPolygon = NULL;
 
     const double** const shape = (const double**) MALLOC(
         nVerticesInPolygon(nDim) * sizeof(double*)
@@ -113,7 +111,7 @@ int PolygonTree__find(
     if (!shape) {status = FAILURE; goto finally;}
 
     for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
-        shape[i] = get_coordinates(points, rootPolygon->vertices[i]);
+        shape[i] = get_coordinates(points, this->vertices[i]);
     }
 
     status = divisionRatioFromPolygonVertices(
@@ -124,9 +122,41 @@ int PolygonTree__find(
     );
     if (status) {goto finally;}
 
+finally:
+
+    if (shape) {FREE(shape);}
+
+    return status;
+}
+
+int PolygonTree__find(
+    const size_t nDim,
+    PolygonTree* const rootPolygon,
+    const double* const coordinates,
+    const Points points,
+    Points__get_coordinates* const get_coordinates,
+    PolygonTree** const foundPolygon,
+    double* const divisionRatio
+) {
+    int status = SUCCESS;
+
+    status = PolygonTree__calculate_divisionRatio(
+        nDim,
+        rootPolygon,
+        coordinates,
+        points,
+        get_coordinates,
+        divisionRatio
+    );
+    if (status) {
+        *foundPolygon = NULL;
+        return status;
+    }
+
     // if coordinates not in rootPolygon: SUCCESS, result is NULL
     if (!divisionRatio__inside(nDim, divisionRatio)) {
-        status = SUCCESS; goto finally;
+        *foundPolygon = NULL;
+        return SUCCESS;
     }
 
     // ** coordinates in rootPolygon **
@@ -134,7 +164,7 @@ int PolygonTree__find(
     // if rootPolygon does not have children: SUCCESS, result is rootPolygon
     if (PolygonTree__nChildren(rootPolygon) == 0) {
         *foundPolygon = rootPolygon;
-        status = SUCCESS; goto finally;
+        return SUCCESS;
     }
 
     // ** rootPolygon has children **
@@ -150,20 +180,16 @@ int PolygonTree__find(
             foundPolygon,
             divisionRatio
         );
-        if (status) {goto finally;}
+        if (status) {
+            return status;
+        }
 
-        if (*foundPolygon) {goto finally;}
+        if (*foundPolygon) return SUCCESS;
     }
 
     // else: failure
     *foundPolygon = NULL;
-    status = FAILURE; goto finally;
-
-finally:
-
-    if (shape) {FREE(shape);}
-
-    return status;
+    return FAILURE;
 }
 
 int PolygonTree__get_around(
