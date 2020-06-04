@@ -95,17 +95,15 @@ int PolygonTree__append_child(
     return PolygonTreeVector__append(this->children, child);
 }
 
-int PolygonTree__find(
+int PolygonTree__calculate_divisionRatio(
     const size_t nDim,
-    PolygonTree* const rootPolygon,
+    const PolygonTree* const this,
     const double* const coordinates,
     const Points points,
     Points__get_coordinates* const get_coordinates,
-    PolygonTree** const foundPolygon,
     double* const divisionRatio
 ) {
     int status = SUCCESS;
-    *foundPolygon = NULL;
 
     const double** const shape = (const double**) MALLOC(
         nVerticesInPolygon(nDim) * sizeof(double*)
@@ -113,7 +111,7 @@ int PolygonTree__find(
     if (!shape) {status = FAILURE; goto finally;}
 
     for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
-        shape[i] = get_coordinates(points, rootPolygon->vertices[i]);
+        shape[i] = get_coordinates(points, this->vertices[i]);
     }
 
     status = divisionRatioFromPolygonVertices(
@@ -124,9 +122,41 @@ int PolygonTree__find(
     );
     if (status) {goto finally;}
 
+finally:
+
+    if (shape) {FREE(shape);}
+
+    return status;
+}
+
+int PolygonTree__find(
+    const size_t nDim,
+    PolygonTree* const rootPolygon,
+    const double* const coordinates,
+    const Points points,
+    Points__get_coordinates* const get_coordinates,
+    PolygonTree** const foundPolygon,
+    double* const divisionRatio
+) {
+    int status = SUCCESS;
+
+    status = PolygonTree__calculate_divisionRatio(
+        nDim,
+        rootPolygon,
+        coordinates,
+        points,
+        get_coordinates,
+        divisionRatio
+    );
+    if (status) {
+        *foundPolygon = NULL;
+        return status;
+    }
+
     // if coordinates not in rootPolygon: SUCCESS, result is NULL
     if (!divisionRatio__inside(nDim, divisionRatio)) {
-        status = SUCCESS; goto finally;
+        *foundPolygon = NULL;
+        return SUCCESS;
     }
 
     // ** coordinates in rootPolygon **
@@ -134,7 +164,7 @@ int PolygonTree__find(
     // if rootPolygon does not have children: SUCCESS, result is rootPolygon
     if (PolygonTree__nChildren(rootPolygon) == 0) {
         *foundPolygon = rootPolygon;
-        status = SUCCESS; goto finally;
+        return SUCCESS;
     }
 
     // ** rootPolygon has children **
@@ -150,18 +180,89 @@ int PolygonTree__find(
             foundPolygon,
             divisionRatio
         );
-        if (status) {goto finally;}
+        if (status) {
+            return status;
+        }
 
-        if (*foundPolygon) {goto finally;}
+        if (*foundPolygon) return SUCCESS;
     }
 
     // else: failure
     *foundPolygon = NULL;
-    status = FAILURE; goto finally;
+    return FAILURE;
+}
+
+int PolygonTree__get_around(
+    const size_t nDim,
+    const PolygonTree* const polygon,
+    const IndexVector* const overlapVertices,
+    const NeighborPairMap* const neighborPairMap,
+    PolygonTreeVector* const aroundPolygons
+) {
+    // Early return
+    for (size_t i = 0 ; i < (aroundPolygons->size) ; i++) {
+        if (polygon == PolygonTreeVector__elements(aroundPolygons)[i]) {
+            return SUCCESS;
+        }
+    }
+
+    int status = SUCCESS;
+
+    // resources
+    IndexVector* face = IndexVector__new(nVerticesInFace(nDim));
+    if (!face) {
+        status = FAILURE; goto finally;
+    }
+
+    status = PolygonTreeVector__append(
+        aroundPolygons,
+        (PolygonTree*) polygon
+    );
+    if (status) {
+        goto finally;
+    }
+
+    for (size_t iEx = 0 ; iEx < nVerticesInPolygon(nDim) ; iEx++) {
+        for (size_t i = 0 ; i < nVerticesInFace(nDim) ; i++) {
+            if (i < iEx) {
+                IndexVector__elements(face)[i] = polygon->vertices[i+0];
+            } else {
+                IndexVector__elements(face)[i] = polygon->vertices[i+1];
+            }
+        }
+
+        if (!contains__size_t__Array(
+            nVerticesInFace(nDim), IndexVector__elements(face),
+            overlapVertices->size, IndexVector__elements(overlapVertices)
+        )) {
+            continue;
+        }
+
+        Neighbor* neighborPair;
+        if (!NeighborPairMap__get(neighborPairMap, face, &neighborPair)) {
+            status = FAILURE; goto finally;
+        }
+
+        for (size_t i = 0 ; i < 2 ; i++) {
+            PolygonTree* candidate = neighborPair[i].polygon;
+            if (candidate && candidate != polygon) {
+                status = PolygonTree__get_around(
+                    nDim,
+                    candidate,
+                    overlapVertices,
+                    neighborPairMap,
+                    aroundPolygons
+                );
+                if (status) {
+                    goto finally;
+                }
+            }
+        }
+    }
 
 finally:
 
-    if (shape) {FREE(shape);}
+    if (face) {IndexVector__delete(face);}
 
     return status;
 }
@@ -332,72 +433,6 @@ static int PolygonTreeVector__divide_polygon_inside(
         );
         if (status) {
             goto finally;
-        }
-    }
-
-finally:
-
-    if (face) {IndexVector__delete(face);}
-
-    return status;
-}
-
-static int PolygonTree__get_around(
-    const size_t nDim,
-    const PolygonTree* const polygon,
-    const IndexVector* const overlapVertices,
-    const NeighborPairMap* const neighborPairMap,
-    PolygonTreeVector* const aroundPolygons
-) {
-    // Early return
-    for (size_t i = 0 ; i < (aroundPolygons->size) ; i++) {
-        if (polygon == PolygonTreeVector__elements(aroundPolygons)[i]) {
-            return SUCCESS;
-        }
-    }
-
-    int status = SUCCESS;
-
-    // resources
-    IndexVector* face = IndexVector__new(nVerticesInFace(nDim));
-    if (!face) {
-        status = FAILURE; goto finally;
-    }
-
-    for (size_t iEx = 0 ; iEx < nVerticesInPolygon(nDim) ; iEx++) {
-        for (size_t i = 0 ; i < nVerticesInFace(nDim) ; i++) {
-            if (i < iEx) {
-                IndexVector__elements(face)[i] = polygon->vertices[i+0];
-            } else {
-                IndexVector__elements(face)[i] = polygon->vertices[i+1];
-            }
-        }
-
-        if (!contains__size_t__Array(
-            nVerticesInFace(nDim), IndexVector__elements(face),
-            overlapVertices->size, IndexVector__elements(overlapVertices)
-        )) {
-            continue;
-        }
-
-        Neighbor* neighborPair;
-        if (!NeighborPairMap__get(neighborPairMap, face, &neighborPair)) {
-            status = FAILURE; goto finally;
-        }
-
-        for (size_t i = 0 ; i < 2 ; i++) {
-            if (neighborPair[i].polygon) {
-                status = PolygonTree__get_around(
-                    nDim,
-                    neighborPair[i].polygon,
-                    overlapVertices,
-                    neighborPairMap,
-                    aroundPolygons
-                );
-                if (status) {
-                    goto finally;
-                }
-            }
         }
     }
 

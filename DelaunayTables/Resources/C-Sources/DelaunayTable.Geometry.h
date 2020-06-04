@@ -4,19 +4,20 @@
 #include "DelaunayTable.Common.h"
 
 #include <math.h>
+#include <float.h>
 #include <stdbool.h>
 
 
 typedef void* Points;
 
-typedef const double* Points__get_coordinates (const Points, size_t index);
+typedef const double* Points__get_coordinates (const Points, const size_t index);
 
 
 /// relative tolerance for `double__compare`
 static const double rel_tol = 1.0e-9;
 
 /// absolute tolerance for `double__compare`
-static const double abs_tol = 0.0;
+static const double abs_tol = 1.0e-12;
 
 
 static inline double double__abs(

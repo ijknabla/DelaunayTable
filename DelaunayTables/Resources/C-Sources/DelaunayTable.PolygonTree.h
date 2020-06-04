@@ -36,6 +36,15 @@ extern int PolygonTree__append_child(
     PolygonTree* child
 );
 
+extern int PolygonTree__calculate_divisionRatio(
+    const size_t nDim,
+    const PolygonTree* this,
+    const double* coordinates,
+    const Points points,
+    Points__get_coordinates* get_coordinates,
+    double* divisionRatio
+);
+
 extern int PolygonTree__find(
     const size_t nDim,
     PolygonTree* rootPolygon,
@@ -44,6 +53,14 @@ extern int PolygonTree__find(
     Points__get_coordinates* get_coordinates,
     PolygonTree** foundPolygon,
     double* divisionRatio
+);
+
+extern int PolygonTree__get_around(
+    const size_t nDim,
+    const PolygonTree* polygon,
+    const IndexVector* overlapVertices,
+    const NeighborPairMap* neighborPairMap,
+    PolygonTreeVector* aroundPolygons
 );
 
 
