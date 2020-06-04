@@ -2,6 +2,11 @@
 #include "DelaunayTable.h"
 
 
+/// ## static function declarations
+static int DelaunayTable__extend_table(
+    DelaunayTable* this
+);
+
 /// ## DelaunayTable methods
 int DelaunayTable__from_buffer(
     DelaunayTable** const reference,
@@ -46,6 +51,13 @@ int DelaunayTable__from_buffer(
         status = FAILURE; goto finally;
     }
 
+    status = DelaunayTable__extend_table(
+        this
+    );
+    if (status) {
+        goto finally;
+    }
+
     *reference = this;
 
 finally:
@@ -78,4 +90,58 @@ void DelaunayTable__delete(
     PolygonTreeVector__delete         (this->polygonTreeVector);
     NeighborPairMap__delete(this->neighborPairMap);
     FREE(this);
+}
+
+/// static function implementations
+static double* DelaunayTable__get_coordinates(
+    const DelaunayTable* const this,
+    const size_t iPoint
+) {
+    if (tablePointBegin(this) <= iPoint && iPoint < tablePointEnd(this)) {
+        return (this->table) + (this->nIn + this->nOut) * (iPoint - tablePointBegin(this));
+    } else if (extendedPointBegin(this) <= iPoint && iPoint < extendedPointEnd(this)
+    ) {
+        return (this->table_extended) + (this->nIn) * (iPoint - extendedPointBegin(this));
+    } else {
+        return NULL;
+    }
+}
+
+static int DelaunayTable__extend_table(
+    DelaunayTable* this
+) {
+    // Calcurate maxAbs
+    double maxAbs = 1.0;  // minimum maxAbs is 1.0
+    for (
+        size_t iPoint = tablePointBegin(this);
+        iPoint < tablePointEnd(this);
+        iPoint++
+    ) {
+        const double* const coords = DelaunayTable__get_coordinates(
+            this, iPoint
+        );
+
+        for (size_t i = 0 ; i < (this->nIn) ; i++) {
+            maxAbs = double__max(maxAbs, double__abs(coords[i]));
+        }
+    }
+
+    // Assign extended table data
+    for (size_t iPoint = 0 ; iPoint < nVerticesInPolygon(this->nIn) ; iPoint++) {
+        double* const coords = DelaunayTable__get_coordinates(
+            this, extendedPointBegin(this)+iPoint
+        );
+
+        for (size_t i = 0 ; i < (this->nIn) ; i++) {
+            if (iPoint == 0) {
+                coords[i] = -4.0 * maxAbs;
+            } else if (iPoint == (i+1)) {
+                coords[i] = +4.0 * maxAbs;
+            } else {
+                coords[i] =  0.0;
+            }
+        }
+    }
+
+    return SUCCESS;
 }
