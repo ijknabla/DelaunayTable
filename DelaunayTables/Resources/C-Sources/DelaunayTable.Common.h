@@ -15,6 +15,13 @@
 #define SUCCESS ( 0)
 #define FAILURE (-1)
 
+enum Verbosity {
+    Verbosity__quiet = 1,
+    Verbosity__info,
+    Verbosity__debug,
+    Verbosity__detail
+};
+
 
 #if !defined(NoModelicaStdLib)
 
