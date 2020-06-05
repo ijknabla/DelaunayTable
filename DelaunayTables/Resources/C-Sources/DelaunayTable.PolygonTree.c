@@ -517,6 +517,33 @@ static int PolygonTreeVector__divide_polygon_by_face(
     const size_t nAroundPolygons  = aroundPolygons->size;
     const size_t nOverlapVertices = overlapVertices->size;
 
+    if (verbosity >= Verbosity__detail) {
+        Runtime__send_message(
+            "- - - Find %lu around polygons",
+            nAroundPolygons
+        );
+
+        for (size_t iAround = 0 ; iAround < nAroundPolygons ; iAround++) {
+            const PolygonTree* const aroundPolygon
+                = PolygonTreeVector__elements(aroundPolygons)[iAround];
+
+            char buffer[1024];
+            sprintf(
+                buffer, "- - - - aroundPolygon[%2lu] {",
+                iAround+1
+            );
+            for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+                sprintf(
+                    buffer+strlen(buffer), "%lu%s",
+                    aroundPolygon->vertices[i]+1,
+                    (i < (nVerticesInPolygon(nDim)-1)) ? ", " : "}"
+                );
+            }
+
+            Runtime__send_message(buffer);
+        }
+    }
+
     /**
      * Add new polygons.
      * Repeat new polygons creation for all `aroundPolygon` in `aroundPolygons`.
