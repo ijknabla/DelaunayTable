@@ -311,6 +311,10 @@ static int PolygonTreeVector__divide_polygon_inside(
     FaceVector* const faceVector,
     const enum Verbosity verbosity
 ) {
+    if (verbosity >= Verbosity__debug) {
+        Runtime__send_message("- - Divide polygon by inside point");
+    }
+
     int status = SUCCESS;
 
     const size_t previousPolygonVectorSize = this->size;
@@ -456,6 +460,10 @@ static int PolygonTreeVector__divide_polygon_by_face(
     FaceVector* const faceVector,
     const enum Verbosity verbosity
 ) {
+    if (verbosity >= Verbosity__debug) {
+        Runtime__send_message("- - Divide polygon by point on face");
+    }
+
     int status = SUCCESS;
 
     const size_t previousPolygonVectorSize = this->size;
