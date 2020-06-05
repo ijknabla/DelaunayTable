@@ -832,13 +832,6 @@ static int PolygonTreeVector__flip_face(
         status = FAILURE; goto finally;
     }
 
-    if (
-        !neighborPairToFlip[0].polygon ||
-        !neighborPairToFlip[1].polygon
-    ) {
-        status = FAILURE; goto finally;
-    }
-
     /**
      * Add new polygons.
      * Each new polygon has `nDim+1` vertices.
