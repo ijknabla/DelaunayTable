@@ -10,6 +10,10 @@ add_library(
     DelaunayTable.c
 )
 
+target_compile_definitions(
+    DelaunayTable PUBLIC -DNoModelicaStdLib
+)
+
 target_include_directories(
     DelaunayTable
     PUBLIC
