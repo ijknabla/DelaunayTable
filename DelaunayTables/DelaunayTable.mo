@@ -5,6 +5,8 @@ block DelaunayTable
 
   parameter Real[:,nin+nout] table;
 
+  parameter Types.Verbosity verbosity = Types.Verbosity.quiet;
+
   Types.ExternalDelaunayTable tableObject = Types.ExternalDelaunayTable(nin, nout, table);
 
 protected
