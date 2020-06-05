@@ -553,9 +553,6 @@ static int PolygonTreeVector__divide_polygon_by_face(
                 }
                 polygon->vertices[i] = aroundPolygon->vertices[i+offset];;
             }
-            if (offset == 0) {
-                status = FAILURE; goto finally;
-            }
             polygon->vertices[nVerticesInPolygon(nDim)-1] = pointToDivide;
 
             sort__size_t__Array(polygon->vertices, nVerticesInPolygon(nDim));
@@ -642,9 +639,6 @@ static int PolygonTreeVector__divide_polygon_by_face(
                 offset++;
             }
             IndexVector__elements(face)[i] = newPolygon->vertices[i+offset];
-        }
-        if (offset == 0) {
-            status = FAILURE; goto finally;
         }
 
         // Update neighbor
