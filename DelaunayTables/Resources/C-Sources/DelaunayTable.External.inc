@@ -68,7 +68,8 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
         nPoints,
         nIn,
         nOut,
-        buffer
+        buffer,
+        1  // Verbosity is quiet
     );
     if (status) {
         FREE(buffer);

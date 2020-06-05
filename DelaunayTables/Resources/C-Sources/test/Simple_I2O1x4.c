@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 
     DelaunayTable* delaunayTable;
 
-    assert( DelaunayTable__from_buffer(&delaunayTable, nPoints, nIn, nOut, table) == 0 );
+    assert( DelaunayTable__from_buffer(&delaunayTable, nPoints, nIn, nOut, table, -1) == 0 );
     assert( delaunayTable != NULL );
 
     for (size_t ix = 0 ; ix < N ; ix++)
