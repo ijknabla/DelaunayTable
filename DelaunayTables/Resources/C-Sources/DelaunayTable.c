@@ -234,16 +234,17 @@ static int DelaunayTable__extend_table(
     }
 
     // Assign extended table data
+    const double big_coordinate = (double) nDim * 2 * maxAbs;
     for (size_t iPoint = 0 ; iPoint < nVerticesInPolygon(nDim) ; iPoint++) {
         double* const coords = (this->table_extended) + iPoint * nDim;
 
         for (size_t i = 0 ; i < nDim ; i++) {
             if (iPoint == 0) {
-                coords[i] = -4.0 * maxAbs;
+                coords[i] = -big_coordinate;
             } else if (iPoint == (i+1)) {
-                coords[i] = +4.0 * maxAbs;
+                coords[i] = +big_coordinate;
             } else {
-                coords[i] =  0.0;
+                coords[i] = 0.0;
             }
         }
     }
