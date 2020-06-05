@@ -832,6 +832,32 @@ static int PolygonTreeVector__flip_face(
         status = FAILURE; goto finally;
     }
 
+    if (verbosity >= Verbosity__debug) {
+        char buffer[1024];
+
+        sprintf(buffer, "- - Flip face {");
+        for (size_t i = 0 ; i < nVerticesInFace(nDim) ; i++) {
+            sprintf(
+                buffer+strlen(buffer), "%lu%s",
+                IndexVector__elements(faceToFlip)[i]+1,
+                (i < (nVerticesInFace(nDim)-1)) ? ", " : "}"
+            );
+        }
+
+        const size_t oppositeVertex = (
+            (pointToDivide == neighborPairToFlip[1].opposite)
+            ? neighborPairToFlip[0].opposite
+            : neighborPairToFlip[1].opposite
+        );
+
+        sprintf(
+            buffer+strlen(buffer), " (opposite is %lu)",
+            oppositeVertex+1
+        );
+
+        Runtime__send_message(buffer);
+    }
+
     /**
      * Add new polygons.
      * Each new polygon has `nDim+1` vertices.
@@ -876,6 +902,21 @@ static int PolygonTreeVector__flip_face(
         polygon->vertices[nVerticesInPolygon(nDim)-1] = neighborPairToFlip[1].opposite;
 
         sort__size_t__Array(polygon->vertices, nVerticesInPolygon(nDim));
+
+        if (verbosity >= Verbosity__debug) {
+            char buffer[1024];
+
+            sprintf(buffer, "- - - Append new polygon {");
+            for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+                sprintf(
+                    buffer+strlen(buffer), "%lu%s",
+                    polygon->vertices[i]+1,
+                    (i < (nVerticesInPolygon(nDim)-1)) ? ", " : "}"
+                );
+            }
+
+            Runtime__send_message(buffer);
+        }
     }
 
     PolygonTree** const newPolygons = PolygonTreeVector__elements(this) + previousPolygonVectorSize;
