@@ -18,7 +18,7 @@ protected
   external "C" ExternalDelaunayTable__get_value(
     self,
     size(u, 1),
-    size(y, 1),
+    nout,
     u,
     y
   ) annotation (
