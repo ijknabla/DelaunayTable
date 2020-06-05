@@ -19,7 +19,10 @@ model I2O1x4
     input Real[2] u;
     output Real y;
   algorithm
-    y := u[1] * 1.0 + u[2] * 2.0;
+    y := 0;
+    for i in 1:size(u,1) loop
+      y := y + u[i] * i;
+    end for;
   end u2y;
 
   block UToY
