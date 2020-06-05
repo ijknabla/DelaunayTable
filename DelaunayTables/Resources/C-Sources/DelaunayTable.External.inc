@@ -14,7 +14,8 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
     const modelica_integer nPoints,
     const modelica_integer nIn,
     const modelica_integer nOut,
-    const modelica_real* table
+    const modelica_real*   table,
+    const modelica_integer verbosity
 ) {
     if (!(0 < nPoints)) {
         ModelicaFormatError(
@@ -69,7 +70,7 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
         nIn,
         nOut,
         buffer,
-        1  // Verbosity is quiet
+        verbosity
     );
     if (status) {
         FREE(buffer);
@@ -97,8 +98,9 @@ static void ExternalDelaunayTable__get_value(
     DelaunayTable* const this,
     const modelica_integer nIn,
     const modelica_integer nOut,
-    const modelica_real* u,
-          modelica_real* y
+    const modelica_real*   u,
+          modelica_real*   y,
+    const modelica_integer verbosity
 ) {
     if (!(0 < nIn)) {
         ModelicaFormatError(

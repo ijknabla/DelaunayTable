@@ -9,13 +9,15 @@ class ExternalDelaunayTable
     input Integer nin;
     input Integer nout;
     input Real[:,nin+nout] table;
+    input Types.Verbosity verbosity;
     output ExternalDelaunayTable self;
 
   external "C" self = ExternalDelaunayTable__constructor(
     size(table, 1),
     nin,
     nout,
-    table
+    table,
+    verbosity
   ) annotation (
     IncludeDirectory = "modelica://DelaunayTables/Resources/C-Sources",
     Include = "#include \"DelaunayTable.External.inc\""
