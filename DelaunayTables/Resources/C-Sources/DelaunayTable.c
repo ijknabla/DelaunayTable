@@ -314,6 +314,14 @@ static int DelaunayTable__delaunay_divide(
         pointToDivide < tablePointEnd(this);
         pointToDivide++
     ) {
+        if (verbosity >= Verbosity__debug) {
+            Runtime__send_message(
+                "Divide polygon tree (contains %6lu polygons) by point [%3lu]",
+                this->polygonTreeVector->size,
+                pointToDivide+1
+            );
+        }
+
         status = PolygonTreeVector__divide_at_point(
             nDim,
             this->polygonTreeVector,
