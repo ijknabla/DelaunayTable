@@ -51,9 +51,10 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
     double* const buffer = (double*) MALLOC(nTable * sizeof(double));
     if (!buffer) {
         ModelicaFormatError(
-            "Error at ExternalDelaunayTable__constructor(%d, %d, %d, (modelica_real*) %p)\n"
+            "Error at ExternalDelaunayTable__constructor("
+            "%d, %d, %d, (modelica_real*) %p, %d)\n"
             "at %s:%d",
-            nPoints, nIn, nOut, table,
+            nPoints, nIn, nOut, table, verbosity,
             __FILE__, __LINE__
         );
     }
@@ -75,9 +76,10 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
     if (status) {
         FREE(buffer);
         ModelicaFormatError(
-            "Error at ExternalDelaunayTable__constructor(%d, %d, %d, (modelica_real*) %p)\n"
+            "Error at ExternalDelaunayTable__constructor("
+            "%d, %d, %d, (modelica_real*) %p, %d)\n"
             "at %s:%d",
-            nPoints, nIn, nOut, table,
+            nPoints, nIn, nOut, table, verbosity,
             __FILE__, __LINE__
         );
     }
@@ -131,9 +133,10 @@ static void ExternalDelaunayTable__get_value(
     );
     if (status) {
         ModelicaFormatError(
-            "Error at ExternalDelaunayTable__get_value((DelaunayTable*) %p, %d, %d, (modelica_real*) %p, (modelica_real*) %p)\n"
+            "Error at ExternalDelaunayTable__get_value("
+            "(DelaunayTable*) %p, %d, %d, (modelica_real*) %p, (modelica_real*) %p, %d)\n"
             "at %s:%d",
-            this, nIn, nOut, u, y,
+            this, nIn, nOut, u, y, verbosity,
             __FILE__, __LINE__
         );
     }
