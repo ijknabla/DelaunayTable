@@ -28,8 +28,13 @@ model I2O1x4
     y := u[1] * 1.0 + u[2] * 2.0;
   end u2y;
 
+  Real[2] u = sin({11, 13} .* 2*pi .* time);
+
+  Real y_result    = delaunayTable.y[1];
+  Real y_reference = u2y(u);
+
 equation
 
-  delaunayTable.u[:] = sin({11, 13} .* 2*pi .* time);
+  delaunayTable.u[:] = u[:];
 
 end I2O1x4;
