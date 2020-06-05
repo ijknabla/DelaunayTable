@@ -147,3 +147,18 @@ add_test(
     NAME "Simple.I2O1x5"
     COMMAND $<TARGET_FILE:testSimple_I2O1x5>
 )
+
+
+add_executable(
+    testSimple_I3O1x8
+    Simple_I3O1x8.c
+)
+target_link_libraries(
+    testSimple_I3O1x8
+    DelaunayTable
+)
+
+add_test(
+    NAME "Simple.I3O1x8"
+    COMMAND $<TARGET_FILE:testSimple_I3O1x8>
+)
