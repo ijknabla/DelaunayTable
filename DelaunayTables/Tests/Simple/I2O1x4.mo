@@ -32,6 +32,7 @@ model I2O1x4
 
   DelaunayTables.DelaunayTable delaunayTable(
     nin = 2, nout = 1,
+    verbosity = DelaunayTables.Types.Verbosity.detail,
     table = [
       -1, -1, u2y({-1, -1});
       -1, +1, u2y({-1, +1});

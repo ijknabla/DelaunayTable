@@ -15,7 +15,8 @@ static int DelaunayTable__extend_table(
 );
 
 static int DelaunayTable__delaunay_divide(
-    DelaunayTable* this
+    DelaunayTable* this,
+    const enum Verbosity verbosity
 );
 
 static int ensure_polygon_on_table(
@@ -32,7 +33,8 @@ int DelaunayTable__from_buffer(
     const size_t nPoints,
     const size_t nIn,
     const size_t nOut,
-    const double* const buffer
+    const double* const buffer,
+    const enum Verbosity verbosity
 ) {
     int status = SUCCESS;
 
@@ -78,7 +80,8 @@ int DelaunayTable__from_buffer(
     }
 
     status = DelaunayTable__delaunay_divide(
-        this
+        this,
+        verbosity
     );
     if (status) {
         goto finally;
@@ -249,7 +252,8 @@ static int DelaunayTable__extend_table(
 }
 
 static int DelaunayTable__delaunay_divide(
-    DelaunayTable* this
+    DelaunayTable* this,
+    const enum Verbosity verbosity
 ) {
     // Assertion polygonTreeVector must be empty
     if ( (this->polygonTreeVector->size) != 0 ) {
@@ -310,6 +314,14 @@ static int DelaunayTable__delaunay_divide(
         pointToDivide < tablePointEnd(this);
         pointToDivide++
     ) {
+        if (verbosity >= Verbosity__debug) {
+            Runtime__send_message(
+                "Divide polygon tree (contains %6lu polygons) by point [%3lu]",
+                this->polygonTreeVector->size,
+                pointToDivide+1
+            );
+        }
+
         status = PolygonTreeVector__divide_at_point(
             nDim,
             this->polygonTreeVector,
@@ -317,7 +329,8 @@ static int DelaunayTable__delaunay_divide(
             this,
             (Points__get_coordinates*) DelaunayTable__get_coordinates,
             bigPolygon,
-            this->neighborPairMap
+            this->neighborPairMap,
+            verbosity
         );
         if (status) {
             goto finally;

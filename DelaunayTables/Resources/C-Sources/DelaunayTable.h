@@ -24,7 +24,8 @@ extern int DelaunayTable__from_buffer(
     const size_t nPoints,
     const size_t nIn,
     const size_t nOut,
-    const double* buffer
+    const double* buffer,
+    const enum Verbosity verbosity
 );
 
 extern void DelaunayTable__delete(

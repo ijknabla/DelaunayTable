@@ -5,7 +5,9 @@ block DelaunayTable
 
   parameter Real[:,nin+nout] table;
 
-  Types.ExternalDelaunayTable tableObject = Types.ExternalDelaunayTable(nin, nout, table);
+  parameter Types.Verbosity verbosity = Types.Verbosity.quiet;
+
+  Types.ExternalDelaunayTable tableObject = Types.ExternalDelaunayTable(nin, nout, table, verbosity);
 
 protected
 
@@ -14,13 +16,15 @@ protected
     input Types.ExternalDelaunayTable self;
     input Integer nout;
     input Real[:] u;
+    input Types.Verbosity verbosity;
     output Real[nout] y;
   external "C" ExternalDelaunayTable__get_value(
     self,
     size(u, 1),
     nout,
     u,
-    y
+    y,
+    verbosity
   ) annotation (
     IncludeDirectory = "modelica://DelaunayTables/Resources/C-Sources",
     Include = "#include \"DelaunayTable.External.inc\""
@@ -29,6 +33,6 @@ protected
 
 equation
 
-  y = get_value(tableObject, nout, u);
+  y = get_value(tableObject, nout, u, verbosity);
 
 end DelaunayTable;

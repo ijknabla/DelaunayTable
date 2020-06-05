@@ -93,7 +93,8 @@ extern int PolygonTreeVector__divide_at_point(
     const Points points,
     Points__get_coordinates* get_coordinates,
     PolygonTree* rootPolygon,
-    NeighborPairMap* neighborPairMap
+    NeighborPairMap* neighborPairMap,
+    const enum Verbosity verbosity
 );
 
 

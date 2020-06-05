@@ -14,7 +14,8 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
     const modelica_integer nPoints,
     const modelica_integer nIn,
     const modelica_integer nOut,
-    const modelica_real* table
+    const modelica_real*   table,
+    const modelica_integer verbosity
 ) {
     if (!(0 < nPoints)) {
         ModelicaFormatError(
@@ -50,9 +51,10 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
     double* const buffer = (double*) MALLOC(nTable * sizeof(double));
     if (!buffer) {
         ModelicaFormatError(
-            "Error at ExternalDelaunayTable__constructor(%d, %d, %d, (modelica_real*) %p)\n"
+            "Error at ExternalDelaunayTable__constructor("
+            "%d, %d, %d, (modelica_real*) %p, %d)\n"
             "at %s:%d",
-            nPoints, nIn, nOut, table,
+            nPoints, nIn, nOut, table, verbosity,
             __FILE__, __LINE__
         );
     }
@@ -68,14 +70,16 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
         nPoints,
         nIn,
         nOut,
-        buffer
+        buffer,
+        verbosity
     );
     if (status) {
         FREE(buffer);
         ModelicaFormatError(
-            "Error at ExternalDelaunayTable__constructor(%d, %d, %d, (modelica_real*) %p)\n"
+            "Error at ExternalDelaunayTable__constructor("
+            "%d, %d, %d, (modelica_real*) %p, %d)\n"
             "at %s:%d",
-            nPoints, nIn, nOut, table,
+            nPoints, nIn, nOut, table, verbosity,
             __FILE__, __LINE__
         );
     }
@@ -96,8 +100,9 @@ static void ExternalDelaunayTable__get_value(
     DelaunayTable* const this,
     const modelica_integer nIn,
     const modelica_integer nOut,
-    const modelica_real* u,
-          modelica_real* y
+    const modelica_real*   u,
+          modelica_real*   y,
+    const modelica_integer verbosity
 ) {
     if (!(0 < nIn)) {
         ModelicaFormatError(
@@ -128,9 +133,10 @@ static void ExternalDelaunayTable__get_value(
     );
     if (status) {
         ModelicaFormatError(
-            "Error at ExternalDelaunayTable__get_value((DelaunayTable*) %p, %d, %d, (modelica_real*) %p, (modelica_real*) %p)\n"
+            "Error at ExternalDelaunayTable__get_value("
+            "(DelaunayTable*) %p, %d, %d, (modelica_real*) %p, (modelica_real*) %p, %d)\n"
             "at %s:%d",
-            this, nIn, nOut, u, y,
+            this, nIn, nOut, u, y, verbosity,
             __FILE__, __LINE__
         );
     }

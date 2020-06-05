@@ -308,8 +308,13 @@ static int PolygonTreeVector__divide_polygon_inside(
     const Points points,
     Points__get_coordinates* const get_coordinates,
     NeighborPairMap* const neighborPairMap,
-    FaceVector* const faceVector
+    FaceVector* const faceVector,
+    const enum Verbosity verbosity
 ) {
+    if (verbosity >= Verbosity__debug) {
+        Runtime__send_message("- - Divide polygon by inside point");
+    }
+
     int status = SUCCESS;
 
     const size_t previousPolygonVectorSize = this->size;
@@ -359,6 +364,21 @@ static int PolygonTreeVector__divide_polygon_inside(
         polygon->vertices[nVerticesInPolygon(nDim)-1] = pointToDivide;
 
         sort__size_t__Array(polygon->vertices, nVerticesInPolygon(nDim));
+
+        if (verbosity >= Verbosity__debug) {
+            char buffer[1024];
+
+            sprintf(buffer, "- - - Append new polygon {");
+            for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+                sprintf(
+                    buffer+strlen(buffer), "%lu%s",
+                    polygon->vertices[i]+1,
+                    (i < (nVerticesInPolygon(nDim)-1)) ? ", " : "}"
+                );
+            }
+
+            Runtime__send_message(buffer);
+        }
     }
 
     PolygonTree** const newPolygons = PolygonTreeVector__elements(this) + previousPolygonVectorSize;
@@ -452,8 +472,13 @@ static int PolygonTreeVector__divide_polygon_by_face(
     const Points points,
     Points__get_coordinates* const get_coordinates,
     NeighborPairMap* const neighborPairMap,
-    FaceVector* const faceVector
+    FaceVector* const faceVector,
+    const enum Verbosity verbosity
 ) {
+    if (verbosity >= Verbosity__debug) {
+        Runtime__send_message("- - Divide polygon by point on face");
+    }
+
     int status = SUCCESS;
 
     const size_t previousPolygonVectorSize = this->size;
@@ -507,6 +532,33 @@ static int PolygonTreeVector__divide_polygon_by_face(
     const size_t nAroundPolygons  = aroundPolygons->size;
     const size_t nOverlapVertices = overlapVertices->size;
 
+    if (verbosity >= Verbosity__detail) {
+        Runtime__send_message(
+            "- - - Find %lu around polygons",
+            nAroundPolygons
+        );
+
+        for (size_t iAround = 0 ; iAround < nAroundPolygons ; iAround++) {
+            const PolygonTree* const aroundPolygon
+                = PolygonTreeVector__elements(aroundPolygons)[iAround];
+
+            char buffer[1024];
+            sprintf(
+                buffer, "- - - - aroundPolygon[%2lu] {",
+                iAround+1
+            );
+            for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+                sprintf(
+                    buffer+strlen(buffer), "%lu%s",
+                    aroundPolygon->vertices[i]+1,
+                    (i < (nVerticesInPolygon(nDim)-1)) ? ", " : "}"
+                );
+            }
+
+            Runtime__send_message(buffer);
+        }
+    }
+
     /**
      * Add new polygons.
      * Repeat new polygons creation for all `aroundPolygon` in `aroundPolygons`.
@@ -556,6 +608,21 @@ static int PolygonTreeVector__divide_polygon_by_face(
             polygon->vertices[nVerticesInPolygon(nDim)-1] = pointToDivide;
 
             sort__size_t__Array(polygon->vertices, nVerticesInPolygon(nDim));
+
+            if (verbosity >= Verbosity__debug) {
+                char buffer[1024];
+
+                sprintf(buffer, "- - - Append new polygon {");
+                for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+                    sprintf(
+                        buffer+strlen(buffer), "%lu%s",
+                        polygon->vertices[i]+1,
+                        (i < (nVerticesInPolygon(nDim)-1)) ? ", " : "}"
+                    );
+                }
+
+                Runtime__send_message(buffer);
+            }
         }
     }
 
@@ -732,7 +799,8 @@ static int PolygonTreeVector__flip_face(
     const Points points,
     Points__get_coordinates* get_coordinates,
     NeighborPairMap* const neighborPairMap,
-    FaceVector* faceVector
+    FaceVector* faceVector,
+    const enum Verbosity verbosity
 ) {
     int status = SUCCESS;
 
@@ -764,11 +832,30 @@ static int PolygonTreeVector__flip_face(
         status = FAILURE; goto finally;
     }
 
-    if (
-        !neighborPairToFlip[0].polygon ||
-        !neighborPairToFlip[1].polygon
-    ) {
-        status = FAILURE; goto finally;
+    if (verbosity >= Verbosity__debug) {
+        char buffer[1024];
+
+        sprintf(buffer, "- - Flip face {");
+        for (size_t i = 0 ; i < nVerticesInFace(nDim) ; i++) {
+            sprintf(
+                buffer+strlen(buffer), "%lu%s",
+                IndexVector__elements(faceToFlip)[i]+1,
+                (i < (nVerticesInFace(nDim)-1)) ? ", " : "}"
+            );
+        }
+
+        const size_t oppositeVertex = (
+            (pointToDivide == neighborPairToFlip[1].opposite)
+            ? neighborPairToFlip[0].opposite
+            : neighborPairToFlip[1].opposite
+        );
+
+        sprintf(
+            buffer+strlen(buffer), " (opposite is %lu)",
+            oppositeVertex+1
+        );
+
+        Runtime__send_message(buffer);
     }
 
     /**
@@ -815,6 +902,21 @@ static int PolygonTreeVector__flip_face(
         polygon->vertices[nVerticesInPolygon(nDim)-1] = neighborPairToFlip[1].opposite;
 
         sort__size_t__Array(polygon->vertices, nVerticesInPolygon(nDim));
+
+        if (verbosity >= Verbosity__debug) {
+            char buffer[1024];
+
+            sprintf(buffer, "- - - Append new polygon {");
+            for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+                sprintf(
+                    buffer+strlen(buffer), "%lu%s",
+                    polygon->vertices[i]+1,
+                    (i < (nVerticesInPolygon(nDim)-1)) ? ", " : "}"
+                );
+            }
+
+            Runtime__send_message(buffer);
+        }
     }
 
     PolygonTree** const newPolygons = PolygonTreeVector__elements(this) + previousPolygonVectorSize;
@@ -914,7 +1016,8 @@ int PolygonTreeVector__divide_at_point(
     const Points points,
     Points__get_coordinates* const get_coordinates,
     PolygonTree* const rootPolygon,
-    NeighborPairMap* const neighborPairMap
+    NeighborPairMap* const neighborPairMap,
+    const enum Verbosity verbosity
 ) {
     int status = SUCCESS;
 
@@ -953,6 +1056,26 @@ int PolygonTreeVector__divide_at_point(
         status = FAILURE; goto finally;
     }
 
+    if (verbosity >= Verbosity__debug) {
+        char buffer[1024];
+
+        sprintf(buffer, "- Find polygonToDivide {");
+        for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+            sprintf(
+                buffer+strlen(buffer), "%lu%s",
+                polygonToDivide->vertices[i]+1,
+                (i < (nVerticesInPolygon(nDim)-1)) ? ", " : "}"
+            );
+        }
+
+        sprintf(
+            buffer+strlen(buffer), " contains %lu",
+            pointToDivide+1
+        );
+
+        Runtime__send_message(buffer);
+    }
+
     if (!divisionRatio__on_face(nDim, divisionRatio)) {
         status = PolygonTreeVector__divide_polygon_inside(
             nDim,
@@ -962,7 +1085,8 @@ int PolygonTreeVector__divide_at_point(
             points,
             get_coordinates,
             neighborPairMap,
-            faceVector
+            faceVector,
+            verbosity
         );
         if (status) {goto finally;}
     } else { // divisionRatio__on_face(...)
@@ -975,7 +1099,8 @@ int PolygonTreeVector__divide_at_point(
             points,
             get_coordinates,
             neighborPairMap,
-            faceVector
+            faceVector,
+            verbosity
         );
         if (status) {goto finally;}
     }
@@ -989,7 +1114,8 @@ int PolygonTreeVector__divide_at_point(
             points,
             get_coordinates,
             neighborPairMap,
-            faceVector
+            faceVector,
+            verbosity
         );
         if (status) {
             goto finally;
