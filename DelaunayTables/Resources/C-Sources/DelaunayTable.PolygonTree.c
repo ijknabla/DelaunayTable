@@ -957,6 +957,30 @@ int PolygonTreeVector__divide_at_point(
         status = FAILURE; goto finally;
     }
 
+    if (verbosity >= Verbosity__debug) {
+        char buffer[1024];
+
+        sprintf(buffer, "- Find polygonToDivide {");
+        for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+            sprintf(
+                buffer+strlen(buffer), "%ld",
+                polygonToDivide->vertices[i]+1
+            );
+            if ( i < (nVerticesInPolygon(nDim)-1)) {
+                sprintf(buffer+strlen(buffer), ", ");
+            } else {
+                sprintf(buffer+strlen(buffer), "}");
+            }
+        }
+
+        sprintf(
+            buffer+strlen(buffer), " contains %lu",
+            pointToDivide+1
+        );
+
+        Runtime__send_message(buffer);
+    }
+
     if (!divisionRatio__on_face(nDim, divisionRatio)) {
         status = PolygonTreeVector__divide_polygon_inside(
             nDim,
