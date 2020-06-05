@@ -364,6 +364,21 @@ static int PolygonTreeVector__divide_polygon_inside(
         polygon->vertices[nVerticesInPolygon(nDim)-1] = pointToDivide;
 
         sort__size_t__Array(polygon->vertices, nVerticesInPolygon(nDim));
+
+        if (verbosity >= Verbosity__debug) {
+            char buffer[1024];
+
+            sprintf(buffer, "- - - Append new polygon {");
+            for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+                sprintf(
+                    buffer+strlen(buffer), "%lu%s",
+                    polygon->vertices[i]+1,
+                    (i < (nVerticesInPolygon(nDim)-1)) ? ", " : "}"
+                );
+            }
+
+            Runtime__send_message(buffer);
+        }
     }
 
     PolygonTree** const newPolygons = PolygonTreeVector__elements(this) + previousPolygonVectorSize;
