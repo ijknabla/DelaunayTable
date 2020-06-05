@@ -971,14 +971,10 @@ int PolygonTreeVector__divide_at_point(
         sprintf(buffer, "- Find polygonToDivide {");
         for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
             sprintf(
-                buffer+strlen(buffer), "%ld",
-                polygonToDivide->vertices[i]+1
+                buffer+strlen(buffer), "%lu%s",
+                polygonToDivide->vertices[i]+1,
+                (i < (nVerticesInPolygon(nDim)-1)) ? ", " : "}"
             );
-            if ( i < (nVerticesInPolygon(nDim)-1)) {
-                sprintf(buffer+strlen(buffer), ", ");
-            } else {
-                sprintf(buffer+strlen(buffer), "}");
-            }
         }
 
         sprintf(
