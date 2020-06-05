@@ -15,7 +15,8 @@ static int DelaunayTable__extend_table(
 );
 
 static int DelaunayTable__delaunay_divide(
-    DelaunayTable* this
+    DelaunayTable* this,
+    const enum Verbosity verbosity
 );
 
 static int ensure_polygon_on_table(
@@ -79,7 +80,8 @@ int DelaunayTable__from_buffer(
     }
 
     status = DelaunayTable__delaunay_divide(
-        this
+        this,
+        verbosity
     );
     if (status) {
         goto finally;
@@ -250,7 +252,8 @@ static int DelaunayTable__extend_table(
 }
 
 static int DelaunayTable__delaunay_divide(
-    DelaunayTable* this
+    DelaunayTable* this,
+    const enum Verbosity verbosity
 ) {
     // Assertion polygonTreeVector must be empty
     if ( (this->polygonTreeVector->size) != 0 ) {
@@ -318,7 +321,8 @@ static int DelaunayTable__delaunay_divide(
             this,
             (Points__get_coordinates*) DelaunayTable__get_coordinates,
             bigPolygon,
-            this->neighborPairMap
+            this->neighborPairMap,
+            verbosity
         );
         if (status) {
             goto finally;

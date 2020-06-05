@@ -308,7 +308,8 @@ static int PolygonTreeVector__divide_polygon_inside(
     const Points points,
     Points__get_coordinates* const get_coordinates,
     NeighborPairMap* const neighborPairMap,
-    FaceVector* const faceVector
+    FaceVector* const faceVector,
+    const enum Verbosity verbosity
 ) {
     int status = SUCCESS;
 
@@ -452,7 +453,8 @@ static int PolygonTreeVector__divide_polygon_by_face(
     const Points points,
     Points__get_coordinates* const get_coordinates,
     NeighborPairMap* const neighborPairMap,
-    FaceVector* const faceVector
+    FaceVector* const faceVector,
+    const enum Verbosity verbosity
 ) {
     int status = SUCCESS;
 
@@ -732,7 +734,8 @@ static int PolygonTreeVector__flip_face(
     const Points points,
     Points__get_coordinates* get_coordinates,
     NeighborPairMap* const neighborPairMap,
-    FaceVector* faceVector
+    FaceVector* faceVector,
+    const enum Verbosity verbosity
 ) {
     int status = SUCCESS;
 
@@ -914,7 +917,8 @@ int PolygonTreeVector__divide_at_point(
     const Points points,
     Points__get_coordinates* const get_coordinates,
     PolygonTree* const rootPolygon,
-    NeighborPairMap* const neighborPairMap
+    NeighborPairMap* const neighborPairMap,
+    const enum Verbosity verbosity
 ) {
     int status = SUCCESS;
 
@@ -962,7 +966,8 @@ int PolygonTreeVector__divide_at_point(
             points,
             get_coordinates,
             neighborPairMap,
-            faceVector
+            faceVector,
+            verbosity
         );
         if (status) {goto finally;}
     } else { // divisionRatio__on_face(...)
@@ -975,7 +980,8 @@ int PolygonTreeVector__divide_at_point(
             points,
             get_coordinates,
             neighborPairMap,
-            faceVector
+            faceVector,
+            verbosity
         );
         if (status) {goto finally;}
     }
@@ -989,7 +995,8 @@ int PolygonTreeVector__divide_at_point(
             points,
             get_coordinates,
             neighborPairMap,
-            faceVector
+            faceVector,
+            verbosity
         );
         if (status) {
             goto finally;
