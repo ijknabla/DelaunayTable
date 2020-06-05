@@ -3,10 +3,32 @@ within DelaunayTables;
 block DelaunayTable
   extends Modelica.Blocks.Interfaces.MIMO;
 
-  Types.ExternalDelaunayTable table = Types.ExternalDelaunayTable();
+  parameter Real[:,nin+nout] table;
+
+  Types.ExternalDelaunayTable tableObject = Types.ExternalDelaunayTable(nin, nout, table);
+
+protected
+
+  function get_value
+    extends Modelica.Icons.Function;
+    input Types.ExternalDelaunayTable self;
+    input Integer nout;
+    input Real[:] u;
+    output Real[nout] y;
+  external "C" ExternalDelaunayTable__get_value(
+    self,
+    size(u, 1),
+    nout,
+    u,
+    y
+  ) annotation (
+    IncludeDirectory = "modelica://DelaunayTables/Resources/C-Sources",
+    Include = "#include \"DelaunayTable.External.inc\""
+   );
+  end get_value;
 
 equation
 
-  y[:] = zeros(nout);
+  y = get_value(tableObject, nout, u);
 
 end DelaunayTable;
