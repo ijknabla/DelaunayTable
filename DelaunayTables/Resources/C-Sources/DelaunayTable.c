@@ -16,9 +16,10 @@ static void DelaunayTable__extend_table(
     DelaunayTable* this
 );
 
-static int DelaunayTable__delaunay_divide(
+static void DelaunayTable__delaunay_divide(
     DelaunayTable* this,
-    const enum Verbosity verbosity
+    const enum Verbosity verbosity,
+    ResourceStack resources
 );
 
 static int ensure_polygon_on_table(
@@ -39,8 +40,6 @@ DelaunayTable* DelaunayTable__from_buffer(
     ResourceStack resources
 ) {
     ResourceStack__enter(resources);
-
-    int status = SUCCESS;
 
     DelaunayTable* this = ResourceStack__ensure_delete_on_error(
         resources, FREE,
@@ -88,18 +87,11 @@ DelaunayTable* DelaunayTable__from_buffer(
         this
     );
 
-    status = DelaunayTable__delaunay_divide(
+    DelaunayTable__delaunay_divide(
         this,
-        verbosity
+        verbosity,
+        resources
     );
-    if (status) {
-        ResourceStack__raise_error(resources);
-        Runtime__send_error(
-            "DelaunayTable__delaunay_divide raises error\n"
-            "at %s:%d",
-            __FILE__, __LINE__
-        );
-    }
 
     ResourceStack__exit(resources);
     return this;
@@ -244,32 +236,40 @@ static void DelaunayTable__extend_table(
     }
 }
 
-static int DelaunayTable__delaunay_divide(
+static void DelaunayTable__delaunay_divide(
     DelaunayTable* this,
-    const enum Verbosity verbosity
+    const enum Verbosity verbosity,
+    ResourceStack resources
 ) {
-    // Assertion polygonTreeVector must be empty
-    if ( (this->polygonTreeVector->size) != 0 ) {
-        return FAILURE;
-    }
+    ResourceStack__enter(resources);
 
     int status = SUCCESS;
 
+    // Assertion polygonTreeVector must be empty
+    if ( (this->polygonTreeVector->size) != 0 ) {
+        raise_Error(resources, "duplicate call of DelaunayTable__delaunay_divide()");
+    }
+
     const size_t nDim = this->nIn;
 
-    IndexVector* face = IndexVector__new(nVerticesInFace(nDim));
+    IndexVector* face = ResourceStack__ensure_delete_finally(
+        resources, (Resource__deleter*) IndexVector__delete,
+        IndexVector__new(nVerticesInFace(nDim))
+    );
     if (!face) {
-        status = FAILURE; goto finally;
+        raise_Error(resources, "IndexVector__new(nVerticesInFace(nDim)) failed");
     }
 
     // Setup bigPolygon as root of polygonTree
     PolygonTree* const bigPolygon = PolygonTree__new(nDim);
-    if (!bigPolygon) {status = FAILURE; goto finally;}
+    if (!bigPolygon) {
+        raise_Error(resources, "PolygonTree__new(nDim) failed");
+    }
 
     status = PolygonTreeVector__append(this->polygonTreeVector, bigPolygon);
     if (status) {
         PolygonTree__delete(bigPolygon);
-        goto finally;
+        raise_Error(resources, "failed to append bigPolygon to this->polygonTreeVector");
     }
 
     for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
@@ -298,7 +298,10 @@ static int DelaunayTable__delaunay_divide(
             neighborPair
         );
         if (status) {
-            goto finally;
+            raise_Error(
+                resources,
+                "failed to set face => neighborPair to this->neighborPairMap"
+            );
         }
     }
 
@@ -326,15 +329,11 @@ static int DelaunayTable__delaunay_divide(
             verbosity
         );
         if (status) {
-            goto finally;
+            raise_Error(resources, "PolygonTreeVector__divide_at_point(...) failed");
         }
     }
 
-finally:
-
-    if (face) {IndexVector__delete(face);}
-
-    return status;
+    ResourceStack__exit(resources);
 }
 
 static inline bool polygon_on_table(
