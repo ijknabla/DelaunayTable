@@ -39,3 +39,21 @@ extern void ResourceStack__enter(
 extern void ResourceStack__exit(
     const ResourceStack resources
 );
+
+
+extern Resource ResourceStack__ensure_delete_finally(
+    const ResourceStack resources,
+    Resource__deleter* const deleter,
+    const Resource resource
+);
+
+extern Resource ResourceStack__ensure_delete_on_failure(
+    const ResourceStack resources,
+    Resource__deleter* const deleter,
+    const Resource resource
+);
+
+
+extern void ResourceStack__fail(
+    const ResourceStack resources
+);
