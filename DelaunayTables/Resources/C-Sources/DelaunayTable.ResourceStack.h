@@ -12,3 +12,21 @@ typedef struct {
     Resource resource;
     Resource__deleter* deleter;
 } ResourceAndDeleter;
+
+typedef Vector ResourcesAndDeleters;
+
+struct ResourceStack__TAG {
+    ResourcesAndDeleters* delete_finally;
+    ResourcesAndDeleters* delete_on_failure;
+};
+
+typedef struct ResourceStack__TAG* ResourceStack;
+
+
+/// methods for ResourceStack
+extern ResourceStack ResourceStack__new(
+);
+
+extern void ResourceStack__delete(
+    const ResourceStack resources
+);
