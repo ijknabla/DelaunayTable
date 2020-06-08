@@ -30,3 +30,12 @@ extern ResourceStack ResourceStack__new(
 extern void ResourceStack__delete(
     const ResourceStack resources
 );
+
+
+extern void ResourceStack__enter(
+    const ResourceStack resources
+);
+
+extern void ResourceStack__exit(
+    const ResourceStack resources
+);
