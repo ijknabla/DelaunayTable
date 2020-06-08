@@ -47,13 +47,13 @@ extern Resource ResourceStack__ensure_delete_finally(
     const Resource resource
 );
 
-extern Resource ResourceStack__ensure_delete_on_failure(
+extern Resource ResourceStack__ensure_delete_on_error(
     const ResourceStack resources,
     Resource__deleter* const deleter,
     const Resource resource
 );
 
 
-extern void ResourceStack__fail(
+extern void ResourceStack__raise_error(
     const ResourceStack resources
 );
