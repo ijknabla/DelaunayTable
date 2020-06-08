@@ -72,7 +72,7 @@ DelaunayTable* DelaunayTable__from_buffer(
         PolygonTreeVector__new(0)
     );
     if (!(this->polygonTreeVector)) {
-        raise_MemoryAllocationError(resources);
+        raise_Error(resources, "PolygonTreeVector__new(0) failed");
     }
 
     this->neighborPairMap = ResourceStack__ensure_delete_on_error(
@@ -80,7 +80,7 @@ DelaunayTable* DelaunayTable__from_buffer(
         NeighborPairMap__new()
     );
     if (!(this->neighborPairMap)) {
-        raise_MemoryAllocationError(resources);
+        raise_Error(resources, "NeighborPairMap__new() failed");
     }
 
     DelaunayTable__extend_table(
