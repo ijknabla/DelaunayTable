@@ -52,3 +52,58 @@ static bool ResourcesAndDeleters__pop(
 
     return true;
 }
+
+
+// ResourceStack methods
+ResourceStack ResourceStack__new(
+) {
+    ResourceStack this = (struct ResourceStack__TAG*) MALLOC(
+        sizeof(struct ResourceStack__TAG)
+    );
+    if (!this) {
+        goto error;
+    }
+
+    if (!(this->delete_finally = ResourcesAndDeleters__new(0))) {
+        goto error;
+    }
+    if (!(this->delete_on_error = ResourcesAndDeleters__new(0))) {
+        goto error;
+    }
+
+    return this;
+
+error:
+
+    if (this) {
+        if (this->delete_finally) {
+            ResourcesAndDeleters__delete(this->delete_finally);
+        }
+        if (this->delete_on_error) {
+            ResourcesAndDeleters__delete(this->delete_on_error);
+        }
+        FREE(this);
+    }
+
+    Runtime__send_error(
+        "FatalError :: failed to allocate new ResourceStack\n"
+        "at %s:%d",
+        __FILE__, __LINE__
+    );
+}
+
+extern void ResourceStack__delete(
+    const ResourceStack this
+) {
+    ResourceAndDeleter resourceAndDeleter;
+    while (ResourcesAndDeleters__pop(this->delete_finally, &resourceAndDeleter)) {
+        if (resourceAndDeleter.deleter && resourceAndDeleter.resource) {
+            resourceAndDeleter.deleter(resourceAndDeleter.resource);
+        }
+    }
+    ResourcesAndDeleters__delete(this->delete_finally);
+
+    ResourcesAndDeleters__delete(this->delete_on_error);
+
+    FREE(this);
+}

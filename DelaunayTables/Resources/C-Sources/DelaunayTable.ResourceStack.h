@@ -17,7 +17,7 @@ typedef Vector ResourcesAndDeleters;
 
 struct ResourceStack__TAG {
     ResourcesAndDeleters* delete_finally;
-    ResourcesAndDeleters* delete_on_failure;
+    ResourcesAndDeleters* delete_on_error;
 };
 
 typedef struct ResourceStack__TAG* ResourceStack;
