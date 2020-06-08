@@ -47,8 +47,6 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
 
     ResourceStack resources = ResourceStack__new();
 
-    int status = SUCCESS;
-
     const size_t nTable = nPoints * (nIn + nOut);
 
     double* const buffer = (double*) ResourceStack__ensure_delete_on_error(
@@ -80,19 +78,8 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
         verbosity,
         resources
     );
-    if (status) {
-        FREE(buffer);
-        ModelicaFormatError(
-            "Error at ExternalDelaunayTable__constructor("
-            "%d, %d, %d, (modelica_real*) %p, %d)\n"
-            "at %s:%d",
-            nPoints, nIn, nOut, table, verbosity,
-            __FILE__, __LINE__
-        );
-    }
 
     ResourceStack__delete(resources);
-
     return this;
 }
 
