@@ -107,3 +107,55 @@ extern void ResourceStack__delete(
 
     FREE(this);
 }
+
+
+void ResourceStack__enter(
+    const ResourceStack this
+) {
+    const ResourceAndDeleter resourceAndDeleter = {};
+    int status = ResourcesAndDeleters__append(this->delete_finally, &resourceAndDeleter);
+    if (status) {
+        ResourceStack__raise_error(this);
+
+        Runtime__send_error(
+            "FatalError :: failed to append new frame to ResourceStack\n"
+            "at %s:%d",
+            __FILE__, __LINE__
+        );
+    }
+}
+
+void ResourceStack__exit(
+    const ResourceStack this
+) {
+    ResourceAndDeleter resourceAndDeleter;
+    while (ResourcesAndDeleters__pop(this->delete_finally, &resourceAndDeleter)) {
+        if (!resourceAndDeleter.resource && !resourceAndDeleter.deleter) {
+            break;
+        }
+        if (resourceAndDeleter.deleter && resourceAndDeleter.resource) {
+            resourceAndDeleter.deleter(resourceAndDeleter.resource);
+        }
+    }
+}
+
+extern void ResourceStack__raise_error(
+    const ResourceStack this
+) {
+    ResourceAndDeleter resourceAndDeleter;
+    while (ResourcesAndDeleters__pop(this->delete_finally, &resourceAndDeleter)) {
+        if (resourceAndDeleter.deleter && resourceAndDeleter.resource) {
+            resourceAndDeleter.deleter(resourceAndDeleter.resource);
+        }
+    }
+    ResourcesAndDeleters__delete(this->delete_finally);
+
+    while (ResourcesAndDeleters__pop(this->delete_on_error, &resourceAndDeleter)) {
+        if (resourceAndDeleter.deleter && resourceAndDeleter.resource) {
+            resourceAndDeleter.deleter(resourceAndDeleter.resource);
+        }
+    }
+    ResourcesAndDeleters__delete(this->delete_on_error);
+
+    FREE(this);
+}
