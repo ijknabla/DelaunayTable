@@ -51,8 +51,14 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
 
     const size_t nTable = nPoints * (nIn + nOut);
 
-    double* const buffer = (double*) MALLOC(nTable * sizeof(double));
+    double* const buffer = (double*) ResourceStack__ensure_delete_on_error(
+        resources, FREE,
+        MALLOC(nTable * sizeof(double))
+    );
+
     if (!buffer) {
+        ResourceStack__raise_error(resources);
+
         ModelicaFormatError(
             "Error at ExternalDelaunayTable__constructor("
             "%d, %d, %d, (modelica_real*) %p, %d)\n"
