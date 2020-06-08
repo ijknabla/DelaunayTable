@@ -4,6 +4,17 @@
 #include <stdbool.h>
 
 
+/// fatal error format & macro
+static const char* FatalErrorFormat =
+"FatalError :: %s\n"
+"at %s:%d";
+
+
+#define raise_FatalError(message) (                                    \
+    Runtime__send_error(FatalErrorFormat, message, __FILE__, __LINE__) \
+)
+
+
 static ResourcesAndDeleters* ResourcesAndDeleters__new(
     const size_t size
 ) {
@@ -85,11 +96,7 @@ error:
         FREE(this);
     }
 
-    Runtime__send_error(
-        "FatalError :: failed to allocate new ResourceStack\n"
-        "at %s:%d",
-        __FILE__, __LINE__
-    );
+    raise_FatalError("failed to allocate new ResourceStack");
 }
 
 extern void ResourceStack__delete(
@@ -116,12 +123,7 @@ void ResourceStack__enter(
     int status = ResourcesAndDeleters__append(this->delete_finally, &resourceAndDeleter);
     if (status) {
         ResourceStack__raise_error(this);
-
-        Runtime__send_error(
-            "FatalError :: failed to append new frame to ResourceStack\n"
-            "at %s:%d",
-            __FILE__, __LINE__
-        );
+        raise_FatalError("failed to append new frame to ResourceStack");
     }
 }
 
@@ -157,12 +159,7 @@ Resource ResourceStack__ensure_delete_finally(
         }
 
         ResourceStack__raise_error(this);
-
-        Runtime__send_error(
-            "FatalError :: failed to append new resource to ResourceStack\n"
-            "at %s:%d",
-            __FILE__, __LINE__
-        );
+        raise_FatalError("failed to append new resource to ResourceStack");
     }
 
     return resource;
@@ -186,12 +183,7 @@ Resource ResourceStack__ensure_delete_on_error(
         }
 
         ResourceStack__raise_error(this);
-
-        Runtime__send_error(
-            "FatalError :: failed to append new resource to ResourceStack\n"
-            "at %s:%d",
-            __FILE__, __LINE__
-        );
+        raise_FatalError("failed to append new resource to ResourceStack");
     }
 
     return resource;
