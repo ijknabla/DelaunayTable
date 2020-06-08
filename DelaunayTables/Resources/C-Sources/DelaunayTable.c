@@ -12,7 +12,7 @@ static const double* DelaunayTable__get_coordinates(
     const size_t iPoint
 );
 
-static int DelaunayTable__extend_table(
+static void DelaunayTable__extend_table(
     DelaunayTable* this
 );
 
@@ -84,17 +84,9 @@ DelaunayTable* DelaunayTable__from_buffer(
         raise_MemoryAllocationError(resources);
     }
 
-    status = DelaunayTable__extend_table(
+    DelaunayTable__extend_table(
         this
     );
-    if (status) {
-        ResourceStack__raise_error(resources);
-        Runtime__send_error(
-            "DelaunayTable__extend_table raises error\n"
-            "at %s:%d",
-            __FILE__, __LINE__
-        );
-    }
 
     status = DelaunayTable__delaunay_divide(
         this,
@@ -215,7 +207,7 @@ static const double* DelaunayTable__get_coordinates(
     }
 }
 
-static int DelaunayTable__extend_table(
+static void DelaunayTable__extend_table(
     DelaunayTable* this
 ) {
     const size_t nDim = this->nIn;
@@ -250,8 +242,6 @@ static int DelaunayTable__extend_table(
             }
         }
     }
-
-    return SUCCESS;
 }
 
 static int DelaunayTable__delaunay_divide(
