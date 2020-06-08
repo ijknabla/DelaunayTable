@@ -28,21 +28,29 @@ static int ensure_polygon_on_table(
 
 
 /// ## DelaunayTable methods
-int DelaunayTable__from_buffer(
-    DelaunayTable** const reference,
+DelaunayTable* DelaunayTable__from_buffer(
     const size_t nPoints,
     const size_t nIn,
     const size_t nOut,
     const double* const buffer,
-    const enum Verbosity verbosity
+    const enum Verbosity verbosity,
+    ResourceStack resources
 ) {
+    ResourceStack__enter(resources);
+
     int status = SUCCESS;
 
-    *reference = NULL;
-
-    DelaunayTable* this = (DelaunayTable*) MALLOC(sizeof(DelaunayTable));
+    DelaunayTable* this = ResourceStack__ensure_delete_on_error(
+        resources, FREE,
+        MALLOC(sizeof(DelaunayTable))
+    );
     if (!this) {
-        status = FAILURE; goto finally;
+        ResourceStack__raise_error(resources);
+        Runtime__send_error(
+            "MemoryError\n"
+            "at %s:%d",
+            __FILE__, __LINE__
+        );
     }
 
     this->nPoints = nPoints;
@@ -55,28 +63,55 @@ int DelaunayTable__from_buffer(
     this->polygonTreeVector = NULL;
     this->neighborPairMap   = NULL;
 
-    this->table_extended = (double*) MALLOC(
-        nVerticesInPolygon(nIn) * nIn * sizeof(double)
+    this->table_extended = ResourceStack__ensure_delete_on_error(
+        resources, FREE,
+        MALLOC(nVerticesInPolygon(nIn) * nIn * sizeof(double))
     );
     if (!(this->table_extended)) {
-        status = FAILURE; goto finally;
+        ResourceStack__raise_error(resources);
+        Runtime__send_error(
+            "MemoryError\n"
+            "at %s:%d",
+            __FILE__, __LINE__
+        );
     }
 
-    this->polygonTreeVector = PolygonTreeVector__new(0);
+    this->polygonTreeVector = ResourceStack__ensure_delete_on_error(
+        resources, (Resource__deleter*) PolygonTreeVector__delete,
+        PolygonTreeVector__new(0)
+    );
     if (!(this->polygonTreeVector)) {
-        status = FAILURE; goto finally;
+        ResourceStack__raise_error(resources);
+        Runtime__send_error(
+            "MemoryError\n"
+            "at %s:%d",
+            __FILE__, __LINE__
+        );
     }
 
-    this->neighborPairMap = NeighborPairMap__new();
+    this->neighborPairMap = ResourceStack__ensure_delete_on_error(
+        resources, (Resource__deleter*) NeighborPairMap__delete,
+        NeighborPairMap__new()
+    );
     if (!(this->neighborPairMap)) {
-        status = FAILURE; goto finally;
+        ResourceStack__raise_error(resources);
+        Runtime__send_error(
+            "MemoryError\n"
+            "at %s:%d",
+            __FILE__, __LINE__
+        );
     }
 
     status = DelaunayTable__extend_table(
         this
     );
     if (status) {
-        goto finally;
+        ResourceStack__raise_error(resources);
+        Runtime__send_error(
+            "DelaunayTable__extend_table raises error\n"
+            "at %s:%d",
+            __FILE__, __LINE__
+        );
     }
 
     status = DelaunayTable__delaunay_divide(
@@ -84,30 +119,16 @@ int DelaunayTable__from_buffer(
         verbosity
     );
     if (status) {
-        goto finally;
+        ResourceStack__raise_error(resources);
+        Runtime__send_error(
+            "DelaunayTable__delaunay_divide raises error\n"
+            "at %s:%d",
+            __FILE__, __LINE__
+        );
     }
 
-    *reference = this;
-
-finally:
-
-    if (status) {
-        if (this) {
-            if (this->table_extended) {
-                FREE(this->table_extended);
-            }
-            if (this->polygonTreeVector) {
-                PolygonTreeVector__delete_elements(this->polygonTreeVector);
-                PolygonTreeVector__delete         (this->polygonTreeVector);
-            }
-            if (this->neighborPairMap) {
-                NeighborPairMap__delete(this->neighborPairMap);
-            }
-            FREE(this);
-        }
-    }
-
-    return status;
+    ResourceStack__exit(resources);
+    return this;
 }
 
 

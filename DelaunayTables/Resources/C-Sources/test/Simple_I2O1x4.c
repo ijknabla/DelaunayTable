@@ -33,12 +33,12 @@ static const double table[] = {
 };
 
 int main(int argc, char** argv) {
-
-    DelaunayTable* delaunayTable;
-
     ResourceStack resources = ResourceStack__new();
 
-    assert( DelaunayTable__from_buffer(&delaunayTable, nPoints, nIn, nOut, table, Verbosity__detail) == 0 );
+    DelaunayTable* delaunayTable = ResourceStack__ensure_delete_finally(
+        resources, (Resource__deleter*) DelaunayTable__delete,
+        DelaunayTable__from_buffer(nPoints, nIn, nOut, table, Verbosity__detail, resources)
+    );
     assert( delaunayTable != NULL );
 
     for (size_t ix = 0 ; ix < N ; ix++)
@@ -50,9 +50,6 @@ int main(int argc, char** argv) {
         assert( double__compare(y[0], u2y(u[0], u[1])) == 0 );
     }
 
-    DelaunayTable__delete(delaunayTable);
-
     ResourceStack__delete(resources);
-
     return EXIT_SUCCESS;
 }

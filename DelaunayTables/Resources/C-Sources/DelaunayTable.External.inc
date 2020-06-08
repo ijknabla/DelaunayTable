@@ -72,15 +72,13 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
         buffer[i] = (double) table[i];
     }
 
-    DelaunayTable* this;
-
-    status = DelaunayTable__from_buffer(
-        &this,
+    DelaunayTable* this = DelaunayTable__from_buffer(
         nPoints,
         nIn,
         nOut,
         buffer,
-        verbosity
+        verbosity,
+        resources
     );
     if (status) {
         FREE(buffer);
