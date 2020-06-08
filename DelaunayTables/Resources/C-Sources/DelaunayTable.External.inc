@@ -45,6 +45,8 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
         );
     }
 
+    ResourceStack resources = ResourceStack__new();
+
     int status = SUCCESS;
 
     const size_t nTable = nPoints * (nIn + nOut);
@@ -84,6 +86,8 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
             __FILE__, __LINE__
         );
     }
+
+    ResourceStack__delete(resources);
 
     return this;
 }

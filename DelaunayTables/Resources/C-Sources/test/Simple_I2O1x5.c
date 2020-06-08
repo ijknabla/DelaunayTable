@@ -1,5 +1,6 @@
 
 #include "DelaunayTable.h"
+#include "DelaunayTable.ResourceStack.h"
 
 #include <stddef.h>
 #include <assert.h>
@@ -36,6 +37,8 @@ int main(int argc, char** argv) {
 
     DelaunayTable* delaunayTable;
 
+    ResourceStack resources = ResourceStack__new();
+
     assert( DelaunayTable__from_buffer(&delaunayTable, nPoints, nIn, nOut, table, Verbosity__detail) == 0 );
     assert( delaunayTable != NULL );
 
@@ -49,6 +52,8 @@ int main(int argc, char** argv) {
     }
 
     DelaunayTable__delete(delaunayTable);
+
+    ResourceStack__delete(resources);
 
     return EXIT_SUCCESS;
 }
