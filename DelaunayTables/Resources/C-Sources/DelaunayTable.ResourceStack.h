@@ -43,13 +43,13 @@ extern void ResourceStack__exit(
 
 extern Resource ResourceStack__ensure_delete_finally(
     const ResourceStack resources,
-    Resource__deleter* const deleter,
+    Resource__deleter* deleter,
     const Resource resource
 );
 
 extern Resource ResourceStack__ensure_delete_on_error(
     const ResourceStack resources,
-    Resource__deleter* const deleter,
+    Resource__deleter* deleter,
     const Resource resource
 );
 
