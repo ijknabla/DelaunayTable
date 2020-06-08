@@ -1,6 +1,8 @@
 
 #include "DelaunayTable.h"
 
+#include "DelaunayTable.Error.h"
+
 #include <stdbool.h>
 
 
@@ -45,12 +47,7 @@ DelaunayTable* DelaunayTable__from_buffer(
         MALLOC(sizeof(DelaunayTable))
     );
     if (!this) {
-        ResourceStack__raise_error(resources);
-        Runtime__send_error(
-            "MemoryError\n"
-            "at %s:%d",
-            __FILE__, __LINE__
-        );
+        raise_MemoryAllocationError(resources);
     }
 
     this->nPoints = nPoints;
@@ -68,12 +65,7 @@ DelaunayTable* DelaunayTable__from_buffer(
         MALLOC(nVerticesInPolygon(nIn) * nIn * sizeof(double))
     );
     if (!(this->table_extended)) {
-        ResourceStack__raise_error(resources);
-        Runtime__send_error(
-            "MemoryError\n"
-            "at %s:%d",
-            __FILE__, __LINE__
-        );
+        raise_MemoryAllocationError(resources);
     }
 
     this->polygonTreeVector = ResourceStack__ensure_delete_on_error(
@@ -81,12 +73,7 @@ DelaunayTable* DelaunayTable__from_buffer(
         PolygonTreeVector__new(0)
     );
     if (!(this->polygonTreeVector)) {
-        ResourceStack__raise_error(resources);
-        Runtime__send_error(
-            "MemoryError\n"
-            "at %s:%d",
-            __FILE__, __LINE__
-        );
+        raise_MemoryAllocationError(resources);
     }
 
     this->neighborPairMap = ResourceStack__ensure_delete_on_error(
@@ -94,12 +81,7 @@ DelaunayTable* DelaunayTable__from_buffer(
         NeighborPairMap__new()
     );
     if (!(this->neighborPairMap)) {
-        ResourceStack__raise_error(resources);
-        Runtime__send_error(
-            "MemoryError\n"
-            "at %s:%d",
-            __FILE__, __LINE__
-        );
+        raise_MemoryAllocationError(resources);
     }
 
     status = DelaunayTable__extend_table(

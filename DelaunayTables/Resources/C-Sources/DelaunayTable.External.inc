@@ -1,6 +1,8 @@
 
 #include <ModelicaUtilities.h>
 
+#include "DelaunayTable.Error.h"
+
 #include "DelaunayTable.Geometry.c"
 #include "DelaunayTable.Container.c"
 #include "DelaunayTable.ResourceStack.c"
@@ -55,15 +57,7 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
     );
 
     if (!buffer) {
-        ResourceStack__raise_error(resources);
-
-        ModelicaFormatError(
-            "Error at ExternalDelaunayTable__constructor("
-            "%d, %d, %d, (modelica_real*) %p, %d)\n"
-            "at %s:%d",
-            nPoints, nIn, nOut, table, verbosity,
-            __FILE__, __LINE__
-        );
+        raise_MemoryAllocationError(resources);
     }
 
     for (size_t i = 0 ; i < nTable ; i++) {
