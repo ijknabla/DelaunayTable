@@ -318,7 +318,7 @@ static void DelaunayTable__delaunay_divide(
             );
         }
 
-        status = PolygonTreeVector__divide_at_point(
+        PolygonTreeVector__divide_at_point(
             nDim,
             this->polygonTreeVector,
             pointToDivide,
@@ -326,11 +326,9 @@ static void DelaunayTable__delaunay_divide(
             (Points__get_coordinates*) DelaunayTable__get_coordinates,
             bigPolygon,
             this->neighborPairMap,
-            verbosity
+            verbosity,
+            resources
         );
-        if (status) {
-            raise_Error(resources, "PolygonTreeVector__divide_at_point(...) failed");
-        }
     }
 
     ResourceStack__exit(resources);

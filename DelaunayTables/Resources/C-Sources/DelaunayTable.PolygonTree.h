@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "DelaunayTable.ResourceStack.h"
 #include "DelaunayTable.Geometry.h"
 #include "DelaunayTable.Container.h"
 #include "DelaunayTable.Neighbor.h"
@@ -86,7 +87,7 @@ extern int PolygonTreeVector__append(
     PolygonTree* polygon
 );
 
-extern int PolygonTreeVector__divide_at_point(
+extern void PolygonTreeVector__divide_at_point(
     const size_t nDim,
     PolygonTreeVector* this,
     const size_t pointToDivide,
@@ -94,7 +95,8 @@ extern int PolygonTreeVector__divide_at_point(
     Points__get_coordinates* get_coordinates,
     PolygonTree* rootPolygon,
     NeighborPairMap* neighborPairMap,
-    const enum Verbosity verbosity
+    const enum Verbosity verbosity,
+    ResourceStack resources
 );
 
 
