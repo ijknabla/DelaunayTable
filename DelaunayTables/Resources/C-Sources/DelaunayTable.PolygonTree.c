@@ -1,6 +1,7 @@
 
 #include "DelaunayTable.PolygonTree.h"
 
+#include "DelaunayTable.Error.h"
 #include "DelaunayTable.IndexVector.h"
 
 #include <stdbool.h>
@@ -1009,7 +1010,7 @@ finally:
     return status;
 }
 
-int PolygonTreeVector__divide_at_point(
+void PolygonTreeVector__divide_at_point(
     const size_t nDim,
     PolygonTreeVector* const this,
     const size_t pointToDivide,
@@ -1017,23 +1018,25 @@ int PolygonTreeVector__divide_at_point(
     Points__get_coordinates* const get_coordinates,
     PolygonTree* const rootPolygon,
     NeighborPairMap* const neighborPairMap,
-    const enum Verbosity verbosity
+    const enum Verbosity verbosity,
+    ResourceStack resources
 ) {
     int status = SUCCESS;
 
-    FaceVector* faceVector    = NULL;
-    double*     divisionRatio = NULL;
-
-    faceVector = FaceVector__new(0);
+    FaceVector* faceVector = ResourceStack__ensure_delete_finally(
+        resources, (Resource__deleter*) FaceVector__delete,
+        FaceVector__new(0)
+    );
     if (!faceVector) {
-        status = FAILURE; goto finally;
+        raise_Error(resources, "FaceVector__new(0) failed");
     }
 
-    divisionRatio = (double*) MALLOC(
-        nVerticesInPolygon(nDim) * sizeof(double)
+    double* divisionRatio = ResourceStack__ensure_delete_finally(
+        resources, FREE,
+        MALLOC(nVerticesInPolygon(nDim) * sizeof(double))
     );
     if (!divisionRatio) {
-        status = FAILURE; goto finally;
+        raise_MemoryAllocationError(resources);
     }
 
     const double* const coordinatesToDivide
@@ -1050,10 +1053,12 @@ int PolygonTreeVector__divide_at_point(
         &polygonToDivide,
         divisionRatio
     );
-    if (status) {goto finally;}
+    if (status) {
+        raise_Error(resources, "PolygonTree__find(...) failed");
+    }
 
     if (!polygonToDivide) {
-        status = FAILURE; goto finally;
+        raise_Error(resources, "can not find polygonToDivide");
     }
 
     if (verbosity >= Verbosity__debug) {
@@ -1088,7 +1093,9 @@ int PolygonTreeVector__divide_at_point(
             faceVector,
             verbosity
         );
-        if (status) {goto finally;}
+        if (status) {
+            raise_Error(resources, "PolygonTreeVector__divide_polygon_inside(...) failed");
+        }
     } else { // divisionRatio__on_face(...)
         status = PolygonTreeVector__divide_polygon_by_face(
             nDim,
@@ -1102,7 +1109,9 @@ int PolygonTreeVector__divide_at_point(
             faceVector,
             verbosity
         );
-        if (status) {goto finally;}
+        if (status) {
+            raise_Error(resources, "PolygonTreeVector__divide_polygon_by_face(...) failed");
+        }
     }
 
     for (size_t i = 0 ; i < (faceVector->size) ; i++) {
@@ -1118,14 +1127,7 @@ int PolygonTreeVector__divide_at_point(
             verbosity
         );
         if (status) {
-            goto finally;
+            raise_Error(resources, "PolygonTreeVector__flip_face(...) failed");
         }
     }
-
-finally:
-
-    if (faceVector)    {FaceVector__delete(faceVector);}
-    if (divisionRatio) {FREE(divisionRatio);}
-
-    return status;
 }

@@ -3,6 +3,8 @@
 
 #include "DelaunayTable.PolygonTree.h"
 
+#include "DelaunayTable.ResourceStack.h"
+
 #include <stddef.h>
 
 
@@ -19,13 +21,13 @@ typedef struct{
 
 
 /// ## DelaunayTable methods
-extern int DelaunayTable__from_buffer(
-    DelaunayTable** reference,
+extern DelaunayTable* DelaunayTable__from_buffer(
     const size_t nPoints,
     const size_t nIn,
     const size_t nOut,
     const double* buffer,
-    const enum Verbosity verbosity
+    const enum Verbosity verbosity,
+    ResourceStack resources
 );
 
 extern void DelaunayTable__delete(

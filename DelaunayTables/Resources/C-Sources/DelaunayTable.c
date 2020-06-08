@@ -1,6 +1,8 @@
 
 #include "DelaunayTable.h"
 
+#include "DelaunayTable.Error.h"
+
 #include <stdbool.h>
 
 
@@ -10,13 +12,14 @@ static const double* DelaunayTable__get_coordinates(
     const size_t iPoint
 );
 
-static int DelaunayTable__extend_table(
+static void DelaunayTable__extend_table(
     DelaunayTable* this
 );
 
-static int DelaunayTable__delaunay_divide(
+static void DelaunayTable__delaunay_divide(
     DelaunayTable* this,
-    const enum Verbosity verbosity
+    const enum Verbosity verbosity,
+    ResourceStack resources
 );
 
 static int ensure_polygon_on_table(
@@ -28,21 +31,22 @@ static int ensure_polygon_on_table(
 
 
 /// ## DelaunayTable methods
-int DelaunayTable__from_buffer(
-    DelaunayTable** const reference,
+DelaunayTable* DelaunayTable__from_buffer(
     const size_t nPoints,
     const size_t nIn,
     const size_t nOut,
     const double* const buffer,
-    const enum Verbosity verbosity
+    const enum Verbosity verbosity,
+    ResourceStack resources
 ) {
-    int status = SUCCESS;
+    ResourceStack__enter(resources);
 
-    *reference = NULL;
-
-    DelaunayTable* this = (DelaunayTable*) MALLOC(sizeof(DelaunayTable));
+    DelaunayTable* this = ResourceStack__ensure_delete_on_error(
+        resources, FREE,
+        MALLOC(sizeof(DelaunayTable))
+    );
     if (!this) {
-        status = FAILURE; goto finally;
+        raise_MemoryAllocationError(resources);
     }
 
     this->nPoints = nPoints;
@@ -55,59 +59,42 @@ int DelaunayTable__from_buffer(
     this->polygonTreeVector = NULL;
     this->neighborPairMap   = NULL;
 
-    this->table_extended = (double*) MALLOC(
-        nVerticesInPolygon(nIn) * nIn * sizeof(double)
+    this->table_extended = ResourceStack__ensure_delete_on_error(
+        resources, FREE,
+        MALLOC(nVerticesInPolygon(nIn) * nIn * sizeof(double))
     );
     if (!(this->table_extended)) {
-        status = FAILURE; goto finally;
+        raise_MemoryAllocationError(resources);
     }
 
-    this->polygonTreeVector = PolygonTreeVector__new(0);
+    this->polygonTreeVector = ResourceStack__ensure_delete_on_error(
+        resources, (Resource__deleter*) PolygonTreeVector__delete,
+        PolygonTreeVector__new(0)
+    );
     if (!(this->polygonTreeVector)) {
-        status = FAILURE; goto finally;
+        raise_Error(resources, "PolygonTreeVector__new(0) failed");
     }
 
-    this->neighborPairMap = NeighborPairMap__new();
+    this->neighborPairMap = ResourceStack__ensure_delete_on_error(
+        resources, (Resource__deleter*) NeighborPairMap__delete,
+        NeighborPairMap__new()
+    );
     if (!(this->neighborPairMap)) {
-        status = FAILURE; goto finally;
+        raise_Error(resources, "NeighborPairMap__new() failed");
     }
 
-    status = DelaunayTable__extend_table(
+    DelaunayTable__extend_table(
         this
     );
-    if (status) {
-        goto finally;
-    }
 
-    status = DelaunayTable__delaunay_divide(
+    DelaunayTable__delaunay_divide(
         this,
-        verbosity
+        verbosity,
+        resources
     );
-    if (status) {
-        goto finally;
-    }
 
-    *reference = this;
-
-finally:
-
-    if (status) {
-        if (this) {
-            if (this->table_extended) {
-                FREE(this->table_extended);
-            }
-            if (this->polygonTreeVector) {
-                PolygonTreeVector__delete_elements(this->polygonTreeVector);
-                PolygonTreeVector__delete         (this->polygonTreeVector);
-            }
-            if (this->neighborPairMap) {
-                NeighborPairMap__delete(this->neighborPairMap);
-            }
-            FREE(this);
-        }
-    }
-
-    return status;
+    ResourceStack__exit(resources);
+    return this;
 }
 
 
@@ -212,7 +199,7 @@ static const double* DelaunayTable__get_coordinates(
     }
 }
 
-static int DelaunayTable__extend_table(
+static void DelaunayTable__extend_table(
     DelaunayTable* this
 ) {
     const size_t nDim = this->nIn;
@@ -247,36 +234,42 @@ static int DelaunayTable__extend_table(
             }
         }
     }
-
-    return SUCCESS;
 }
 
-static int DelaunayTable__delaunay_divide(
+static void DelaunayTable__delaunay_divide(
     DelaunayTable* this,
-    const enum Verbosity verbosity
+    const enum Verbosity verbosity,
+    ResourceStack resources
 ) {
-    // Assertion polygonTreeVector must be empty
-    if ( (this->polygonTreeVector->size) != 0 ) {
-        return FAILURE;
-    }
+    ResourceStack__enter(resources);
 
     int status = SUCCESS;
 
+    // Assertion polygonTreeVector must be empty
+    if ( (this->polygonTreeVector->size) != 0 ) {
+        raise_Error(resources, "duplicate call of DelaunayTable__delaunay_divide()");
+    }
+
     const size_t nDim = this->nIn;
 
-    IndexVector* face = IndexVector__new(nVerticesInFace(nDim));
+    IndexVector* face = ResourceStack__ensure_delete_finally(
+        resources, (Resource__deleter*) IndexVector__delete,
+        IndexVector__new(nVerticesInFace(nDim))
+    );
     if (!face) {
-        status = FAILURE; goto finally;
+        raise_Error(resources, "IndexVector__new(nVerticesInFace(nDim)) failed");
     }
 
     // Setup bigPolygon as root of polygonTree
     PolygonTree* const bigPolygon = PolygonTree__new(nDim);
-    if (!bigPolygon) {status = FAILURE; goto finally;}
+    if (!bigPolygon) {
+        raise_Error(resources, "PolygonTree__new(nDim) failed");
+    }
 
     status = PolygonTreeVector__append(this->polygonTreeVector, bigPolygon);
     if (status) {
         PolygonTree__delete(bigPolygon);
-        goto finally;
+        raise_Error(resources, "failed to append bigPolygon to this->polygonTreeVector");
     }
 
     for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
@@ -305,7 +298,10 @@ static int DelaunayTable__delaunay_divide(
             neighborPair
         );
         if (status) {
-            goto finally;
+            raise_Error(
+                resources,
+                "failed to set face => neighborPair to this->neighborPairMap"
+            );
         }
     }
 
@@ -322,7 +318,7 @@ static int DelaunayTable__delaunay_divide(
             );
         }
 
-        status = PolygonTreeVector__divide_at_point(
+        PolygonTreeVector__divide_at_point(
             nDim,
             this->polygonTreeVector,
             pointToDivide,
@@ -330,18 +326,12 @@ static int DelaunayTable__delaunay_divide(
             (Points__get_coordinates*) DelaunayTable__get_coordinates,
             bigPolygon,
             this->neighborPairMap,
-            verbosity
+            verbosity,
+            resources
         );
-        if (status) {
-            goto finally;
-        }
     }
 
-finally:
-
-    if (face) {IndexVector__delete(face);}
-
-    return status;
+    ResourceStack__exit(resources);
 }
 
 static inline bool polygon_on_table(

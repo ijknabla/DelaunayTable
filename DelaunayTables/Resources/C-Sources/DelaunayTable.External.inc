@@ -1,8 +1,11 @@
 
 #include <ModelicaUtilities.h>
 
+#include "DelaunayTable.Error.h"
+
 #include "DelaunayTable.Geometry.c"
 #include "DelaunayTable.Container.c"
+#include "DelaunayTable.ResourceStack.c"
 #include "DelaunayTable.IndexVector.c"
 #include "DelaunayTable.PolygonTree.c"
 #include "DelaunayTable.Neighbor.c"
@@ -44,46 +47,33 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
         );
     }
 
-    int status = SUCCESS;
+    ResourceStack resources = ResourceStack__new();
 
     const size_t nTable = nPoints * (nIn + nOut);
 
-    double* const buffer = (double*) MALLOC(nTable * sizeof(double));
+    double* const buffer = (double*) ResourceStack__ensure_delete_on_error(
+        resources, FREE,
+        MALLOC(nTable * sizeof(double))
+    );
+
     if (!buffer) {
-        ModelicaFormatError(
-            "Error at ExternalDelaunayTable__constructor("
-            "%d, %d, %d, (modelica_real*) %p, %d)\n"
-            "at %s:%d",
-            nPoints, nIn, nOut, table, verbosity,
-            __FILE__, __LINE__
-        );
+        raise_MemoryAllocationError(resources);
     }
 
     for (size_t i = 0 ; i < nTable ; i++) {
         buffer[i] = (double) table[i];
     }
 
-    DelaunayTable* this;
-
-    status = DelaunayTable__from_buffer(
-        &this,
+    DelaunayTable* this = DelaunayTable__from_buffer(
         nPoints,
         nIn,
         nOut,
         buffer,
-        verbosity
+        verbosity,
+        resources
     );
-    if (status) {
-        FREE(buffer);
-        ModelicaFormatError(
-            "Error at ExternalDelaunayTable__constructor("
-            "%d, %d, %d, (modelica_real*) %p, %d)\n"
-            "at %s:%d",
-            nPoints, nIn, nOut, table, verbosity,
-            __FILE__, __LINE__
-        );
-    }
 
+    ResourceStack__delete(resources);
     return this;
 }
 
