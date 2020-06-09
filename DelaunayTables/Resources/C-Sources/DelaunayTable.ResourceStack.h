@@ -53,6 +53,45 @@ extern Resource ResourceStack__ensure_delete_on_error(
     const Resource resource
 );
 
+extern Resource ResourceStack__ensure_delete_finally__impl__(
+    ResourceStack      this,
+    Resource           resource,
+    Resource__deleter* deleter,
+    const char* resource_expr,
+    const char* file,
+    const int   line
+);
+
+extern Resource ResourceStack__ensure_delete_on_error__impl__(
+    ResourceStack      this,
+    Resource           resource,
+    Resource__deleter* deleter,
+    const char* resource_expr,
+    const char* file,
+    const int   line
+);
+
+#define ResourceStack__ensure_delete_finally2(resources, expr, deleter) ( \
+    ResourceStack__ensure_delete_finally__impl__( \
+        (resources),                    \
+        (Resource)           (expr),    \
+        (Resource__deleter*) (deleter), \
+        #expr,                          \
+        __FILE__,                       \
+        __LINE__                        \
+    )                                   \
+)
+
+#define ResourceStack__ensure_delete_on_error2(resources, expr, deleter) ( \
+    ResourceStack__ensure_delete_on_error__impl__( \
+        (resources),                    \
+        (Resource)           (expr),    \
+        (Resource__deleter*) (deleter), \
+        #expr,                          \
+        __FILE__,                       \
+        __LINE__                        \
+    )                                   \
+)
 
 extern void ResourceStack__raise_error(
     const ResourceStack resources
