@@ -35,11 +35,11 @@ static const double table[] = {
 int main(int argc, char** argv) {
     ResourceStack resources = ResourceStack__new();
 
-    DelaunayTable* delaunayTable = ResourceStack__ensure_delete_finally(
-        resources, (Resource__deleter*) DelaunayTable__delete,
-        DelaunayTable__from_buffer(nPoints, nIn, nOut, table, Verbosity__detail, resources)
+    DelaunayTable* delaunayTable = ResourceStack__ensure_delete_finally2(
+        resources,
+        DelaunayTable__from_buffer(nPoints, nIn, nOut, table, Verbosity__detail, resources),
+        DelaunayTable__delete
     );
-    assert( delaunayTable != NULL );
 
     for (size_t ix = 0 ; ix < N ; ix++)
     for (size_t iy = 0 ; iy < N ; iy++) {
