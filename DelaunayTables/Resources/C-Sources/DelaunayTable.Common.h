@@ -33,9 +33,6 @@ enum Verbosity {
 #include <stdarg.h>
 #include <stdnoreturn.h>
 
-          static inline void Runtime__send_message(const char*, ...);
-_Noreturn static inline void Runtime__send_error  (const char*, ...);
-
 /// Alternative to `ModelicaFormatMessage`
 static inline void Runtime__send_message(
     const char* const format, ...
@@ -65,3 +62,7 @@ _Noreturn static inline void Runtime__send_error(
 }
 
 #endif  /* !defined(NoModelicaStdLib) */
+
+
+          extern void Runtime__send_message(const char*, ...);
+_Noreturn extern void Runtime__send_error  (const char*, ...);
