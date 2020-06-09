@@ -5,13 +5,37 @@
 
 
 /// fatal error format & macro
-static const char* FatalErrorFormat =
-"FatalError :: %s\n"
-"at %s:%d";
+static const char FatalErrorFormat[] =
+    "FatalError :: %s\n"
+    "at %s:%d";
+
+static const char ResourceAllocationFailedFormat[] =
+    "ResourceAllocationError :: ( %s ) failed, returned NULL\n"
+    "at %s:%d";
+
+static const char ResourceDeleterIsNULLFormat[] =
+    "ResourceDeleterIsNULL\n"
+    "at %s:%d";
 
 
-#define raise_FatalError(message) (                                    \
-    Runtime__send_error(FatalErrorFormat, message, __FILE__, __LINE__) \
+#define raise_FatalError(message) (                                      \
+    Runtime__send_error(FatalErrorFormat, (message), __FILE__, __LINE__) \
+)
+
+#define raise_ResourceAllocationFailed(resources, expr, file, line) ( \
+    ResourceStack__raise_error((resources)), \
+    Runtime__send_error(                     \
+        ResourceAllocationFailedFormat,      \
+        (expr), (file), (line)               \
+    )                                        \
+)
+
+#define raise_ResourceDeleterIsNULL(resources, file, line) ( \
+    ResourceStack__raise_error((resources)), \
+    Runtime__send_error(                     \
+        ResourceDeleterIsNULLFormat,         \
+        (file), (line)                       \
+    )                                        \
 )
 
 
@@ -142,21 +166,24 @@ void ResourceStack__exit(
 }
 
 
-Resource ResourceStack__ensure_delete_finally(
-    const ResourceStack this,
-    Resource__deleter* const deleter,
-    const Resource resource
+Resource ResourceStack__ensure_delete_finally__impl__(
+    ResourceStack      this,
+    Resource           resource,
+    Resource__deleter* deleter,
+    const char* resource_expr,
+    const char* file,
+    const int   line
 ) {
     if (!resource) {
-        return NULL;
+        raise_ResourceAllocationFailed(this, resource_expr, file, line);
+    }
+    if (!deleter) {
+        raise_ResourceDeleterIsNULL(this, file, line);
     }
 
     const ResourceAndDeleter resourceAndDeleter = {resource, deleter};
-    int status = ResourcesAndDeleters__append(this->delete_finally, &resourceAndDeleter);
-    if (status) {
-        if (deleter) {
-            deleter(resource);
-        }
+    if (ResourcesAndDeleters__append(this->delete_finally, &resourceAndDeleter)) {
+        deleter(resource);
 
         ResourceStack__raise_error(this);
         raise_FatalError("failed to append new resource to ResourceStack");
@@ -165,22 +192,24 @@ Resource ResourceStack__ensure_delete_finally(
     return resource;
 }
 
-
-Resource ResourceStack__ensure_delete_on_error(
-    const ResourceStack this,
-    Resource__deleter* const deleter,
-    const Resource resource
+Resource ResourceStack__ensure_delete_on_error__impl__(
+    ResourceStack      this,
+    Resource           resource,
+    Resource__deleter* deleter,
+    const char* resource_expr,
+    const char* file,
+    const int   line
 ) {
     if (!resource) {
-        return NULL;
+        raise_ResourceAllocationFailed(this, resource_expr, file, line);
+    }
+    if (!deleter) {
+        raise_ResourceDeleterIsNULL(this, file, line);
     }
 
     const ResourceAndDeleter resourceAndDeleter = {resource, deleter};
-    int status = ResourcesAndDeleters__append(this->delete_on_error, &resourceAndDeleter);
-    if (status) {
-        if (deleter) {
-            deleter(resource);
-        }
+    if (ResourcesAndDeleters__append(this->delete_on_error, &resourceAndDeleter)) {
+        deleter(resource);
 
         ResourceStack__raise_error(this);
         raise_FatalError("failed to append new resource to ResourceStack");
@@ -188,7 +217,6 @@ Resource ResourceStack__ensure_delete_on_error(
 
     return resource;
 }
-
 
 void ResourceStack__raise_error(
     const ResourceStack this

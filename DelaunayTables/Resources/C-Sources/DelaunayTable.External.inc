@@ -51,14 +51,11 @@ static DelaunayTable* ExternalDelaunayTable__constructor(
 
     const size_t nTable = nPoints * (nIn + nOut);
 
-    double* const buffer = (double*) ResourceStack__ensure_delete_on_error(
-        resources, FREE,
-        MALLOC(nTable * sizeof(double))
+    double* const buffer = ResourceStack__ensure_delete_on_error(
+        resources,
+        MALLOC(nTable * sizeof(double)),
+        FREE
     );
-
-    if (!buffer) {
-        raise_MemoryAllocationError(resources);
-    }
 
     for (size_t i = 0 ; i < nTable ; i++) {
         buffer[i] = (double) table[i];

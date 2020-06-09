@@ -1024,20 +1024,16 @@ void PolygonTreeVector__divide_at_point(
     int status = SUCCESS;
 
     FaceVector* faceVector = ResourceStack__ensure_delete_finally(
-        resources, (Resource__deleter*) FaceVector__delete,
-        FaceVector__new(0)
+        resources,
+        FaceVector__new(0),
+        FaceVector__delete
     );
-    if (!faceVector) {
-        raise_Error(resources, "FaceVector__new(0) failed");
-    }
 
     double* divisionRatio = ResourceStack__ensure_delete_finally(
-        resources, FREE,
-        MALLOC(nVerticesInPolygon(nDim) * sizeof(double))
+        resources,
+        MALLOC(nVerticesInPolygon(nDim) * sizeof(double)),
+        FREE
     );
-    if (!divisionRatio) {
-        raise_MemoryAllocationError(resources);
-    }
 
     const double* const coordinatesToDivide
         = get_coordinates(points, pointToDivide);

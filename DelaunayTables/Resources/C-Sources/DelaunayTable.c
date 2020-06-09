@@ -42,12 +42,10 @@ DelaunayTable* DelaunayTable__from_buffer(
     ResourceStack__enter(resources);
 
     DelaunayTable* this = ResourceStack__ensure_delete_on_error(
-        resources, FREE,
-        MALLOC(sizeof(DelaunayTable))
+        resources,
+        MALLOC(sizeof(DelaunayTable)),
+        FREE
     );
-    if (!this) {
-        raise_MemoryAllocationError(resources);
-    }
 
     this->nPoints = nPoints;
     this->nIn     = nIn;
@@ -60,28 +58,22 @@ DelaunayTable* DelaunayTable__from_buffer(
     this->neighborPairMap   = NULL;
 
     this->table_extended = ResourceStack__ensure_delete_on_error(
-        resources, FREE,
-        MALLOC(nVerticesInPolygon(nIn) * nIn * sizeof(double))
+        resources,
+        MALLOC(nVerticesInPolygon(nIn) * nIn * sizeof(double)),
+        FREE
     );
-    if (!(this->table_extended)) {
-        raise_MemoryAllocationError(resources);
-    }
 
     this->polygonTreeVector = ResourceStack__ensure_delete_on_error(
-        resources, (Resource__deleter*) PolygonTreeVector__delete,
-        PolygonTreeVector__new(0)
+        resources,
+        PolygonTreeVector__new(0),
+        PolygonTreeVector__delete
     );
-    if (!(this->polygonTreeVector)) {
-        raise_Error(resources, "PolygonTreeVector__new(0) failed");
-    }
 
     this->neighborPairMap = ResourceStack__ensure_delete_on_error(
-        resources, (Resource__deleter*) NeighborPairMap__delete,
-        NeighborPairMap__new()
+        resources,
+        NeighborPairMap__new(),
+        NeighborPairMap__delete
     );
-    if (!(this->neighborPairMap)) {
-        raise_Error(resources, "NeighborPairMap__new() failed");
-    }
 
     DelaunayTable__extend_table(
         this
@@ -253,12 +245,10 @@ static void DelaunayTable__delaunay_divide(
     const size_t nDim = this->nIn;
 
     IndexVector* face = ResourceStack__ensure_delete_finally(
-        resources, (Resource__deleter*) IndexVector__delete,
-        IndexVector__new(nVerticesInFace(nDim))
+        resources,
+        IndexVector__new(nVerticesInFace(nDim)),
+        IndexVector__delete
     );
-    if (!face) {
-        raise_Error(resources, "IndexVector__new(nVerticesInFace(nDim)) failed");
-    }
 
     // Setup bigPolygon as root of polygonTree
     PolygonTree* const bigPolygon = PolygonTree__new(nDim);
