@@ -22,10 +22,10 @@ static void DelaunayTable__delaunay_divide(
     ResourceStack resources
 );
 
-static int ensure_polygon_on_table(
+static int ensure_polyhedron_on_table(
     const DelaunayTable* this,
     const double* coordinates,
-    PolygonTree** polygon,
+    PolyhedronTree** polyhedron,
     double* divisionRatio
 );
 
@@ -56,23 +56,23 @@ DelaunayTable* DelaunayTable__from_buffer(
 
     // Resources
     this->table_extended    = NULL;
-    this->polygonTreeVector = NULL;
+    this->polyhedronTreeVector = NULL;
     this->neighborPairMap   = NULL;
 
     this->table_extended = ResourceStack__ensure_delete_on_error(
         resources, FREE,
-        MALLOC(nVerticesInPolygon(nIn) * nIn * sizeof(double))
+        MALLOC(nVerticesInPolyhedron(nIn) * nIn * sizeof(double))
     );
     if (!(this->table_extended)) {
         raise_MemoryAllocationError(resources);
     }
 
-    this->polygonTreeVector = ResourceStack__ensure_delete_on_error(
-        resources, (Resource__deleter*) PolygonTreeVector__delete,
-        PolygonTreeVector__new(0)
+    this->polyhedronTreeVector = ResourceStack__ensure_delete_on_error(
+        resources, (Resource__deleter*) PolyhedronTreeVector__delete,
+        PolyhedronTreeVector__new(0)
     );
-    if (!(this->polygonTreeVector)) {
-        raise_Error(resources, "PolygonTreeVector__new(0) failed");
+    if (!(this->polyhedronTreeVector)) {
+        raise_Error(resources, "PolyhedronTreeVector__new(0) failed");
     }
 
     this->neighborPairMap = ResourceStack__ensure_delete_on_error(
@@ -102,8 +102,8 @@ void DelaunayTable__delete(
     DelaunayTable* const this
 ) {
     FREE(this->table_extended);
-    PolygonTreeVector__delete_elements(this->polygonTreeVector);
-    PolygonTreeVector__delete         (this->polygonTreeVector);
+    PolyhedronTreeVector__delete_elements(this->polyhedronTreeVector);
+    PolyhedronTreeVector__delete         (this->polyhedronTreeVector);
     NeighborPairMap__delete(this->neighborPairMap);
     FREE(this);
 }
@@ -127,34 +127,34 @@ int DelaunayTable__get_value(
 
     int status = SUCCESS;
 
-    double* divisionRatio = (double*) MALLOC(nVerticesInPolygon(nDim) * sizeof(double));
+    double* divisionRatio = (double*) MALLOC(nVerticesInPolyhedron(nDim) * sizeof(double));
     if (!divisionRatio) {
         status = FAILURE; goto finally;
     }
 
-    PolygonTree* polygon;
+    PolyhedronTree* polyhedron;
 
-    status = PolygonTree__find(
+    status = PolyhedronTree__find(
         nDim,
-        PolygonTreeVector__elements(this->polygonTreeVector)[0],
+        PolyhedronTreeVector__elements(this->polyhedronTreeVector)[0],
         u,
         this,
         (Points__get_coordinates*) DelaunayTable__get_coordinates,
-        &polygon,
+        &polyhedron,
         divisionRatio
     );
     if (status) {
         goto finally;
     }
 
-    if (!polygon) {
+    if (!polyhedron) {
         status = FAILURE; goto finally;
     }
 
-    status = ensure_polygon_on_table(
+    status = ensure_polyhedron_on_table(
         this,
         u,
-        &polygon,
+        &polyhedron,
         divisionRatio
     );
     if (status) {
@@ -167,10 +167,10 @@ int DelaunayTable__get_value(
         y[iOut] = 0.0;
     }
     /// ## linear interpolation by `divisionRatio`
-    for (size_t iVertex = 0 ; iVertex < nVerticesInPolygon(nDim) ; iVertex++) {
+    for (size_t iVertex = 0 ; iVertex < nVerticesInPolyhedron(nDim) ; iVertex++) {
         const double* coords = DelaunayTable__get_coordinates(
             this,
-            polygon->vertices[iVertex]
+            polyhedron->vertices[iVertex]
         );
         for (size_t iOut = 0 ; iOut < nOut ; iOut++) {
             y[iOut] += divisionRatio[iVertex] * coords[this->nIn + iOut];
@@ -221,7 +221,7 @@ static void DelaunayTable__extend_table(
     }
 
     // Assign extended table data
-    for (size_t iPoint = 0 ; iPoint < nVerticesInPolygon(nDim) ; iPoint++) {
+    for (size_t iPoint = 0 ; iPoint < nVerticesInPolyhedron(nDim) ; iPoint++) {
         double* const coords = (this->table_extended) + iPoint * nDim;
 
         for (size_t i = 0 ; i < nDim ; i++) {
@@ -245,8 +245,8 @@ static void DelaunayTable__delaunay_divide(
 
     int status = SUCCESS;
 
-    // Assertion polygonTreeVector must be empty
-    if ( (this->polygonTreeVector->size) != 0 ) {
+    // Assertion polyhedronTreeVector must be empty
+    if ( (this->polyhedronTreeVector->size) != 0 ) {
         raise_Error(resources, "duplicate call of DelaunayTable__delaunay_divide()");
     }
 
@@ -260,35 +260,35 @@ static void DelaunayTable__delaunay_divide(
         raise_Error(resources, "IndexVector__new(nVerticesInFace(nDim)) failed");
     }
 
-    // Setup bigPolygon as root of polygonTree
-    PolygonTree* const bigPolygon = PolygonTree__new(nDim);
-    if (!bigPolygon) {
-        raise_Error(resources, "PolygonTree__new(nDim) failed");
+    // Setup bigPolyhedron as root of polyhedronTree
+    PolyhedronTree* const bigPolyhedron = PolyhedronTree__new(nDim);
+    if (!bigPolyhedron) {
+        raise_Error(resources, "PolyhedronTree__new(nDim) failed");
     }
 
-    status = PolygonTreeVector__append(this->polygonTreeVector, bigPolygon);
+    status = PolyhedronTreeVector__append(this->polyhedronTreeVector, bigPolyhedron);
     if (status) {
-        PolygonTree__delete(bigPolygon);
-        raise_Error(resources, "failed to append bigPolygon to this->polygonTreeVector");
+        PolyhedronTree__delete(bigPolyhedron);
+        raise_Error(resources, "failed to append bigPolyhedron to this->polyhedronTreeVector");
     }
 
-    for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
-        bigPolygon->vertices[i] = extendedPointBegin(this) + i;
+    for (size_t i = 0 ; i < nVerticesInPolyhedron(nDim) ; i++) {
+        bigPolyhedron->vertices[i] = extendedPointBegin(this) + i;
     }
 
-    for (size_t iEx = 0 ; iEx < nVerticesInPolygon(nDim) ; iEx++) {
+    for (size_t iEx = 0 ; iEx < nVerticesInPolyhedron(nDim) ; iEx++) {
         // Set vertices of face
         for (size_t i = 0 ; i < nVerticesInFace(nDim) ; i++) {
             if (i < iEx) {
-                IndexVector__elements(face)[i] = bigPolygon->vertices[i+0];
+                IndexVector__elements(face)[i] = bigPolyhedron->vertices[i+0];
             } else {
-                IndexVector__elements(face)[i] = bigPolygon->vertices[i+1];
+                IndexVector__elements(face)[i] = bigPolyhedron->vertices[i+1];
             }
         }
 
         // Set to neighborPairMap
         Neighbor neighborPair[2] = {
-            {bigPolygon->vertices[iEx], bigPolygon},
+            {bigPolyhedron->vertices[iEx], bigPolyhedron},
             {-1                       , NULL      }
         };
 
@@ -312,19 +312,19 @@ static void DelaunayTable__delaunay_divide(
     ) {
         if (verbosity >= Verbosity__debug) {
             Runtime__send_message(
-                "Divide polygon tree (contains %6lu polygons) by point [%3lu]",
-                this->polygonTreeVector->size,
+                "Divide polyhedron tree (contains %6lu polyhedrons) by point [%3lu]",
+                this->polyhedronTreeVector->size,
                 pointToDivide+1
             );
         }
 
-        PolygonTreeVector__divide_at_point(
+        PolyhedronTreeVector__divide_at_point(
             nDim,
-            this->polygonTreeVector,
+            this->polyhedronTreeVector,
             pointToDivide,
             this,
             (Points__get_coordinates*) DelaunayTable__get_coordinates,
-            bigPolygon,
+            bigPolyhedron,
             this->neighborPairMap,
             verbosity,
             resources
@@ -334,16 +334,16 @@ static void DelaunayTable__delaunay_divide(
     ResourceStack__exit(resources);
 }
 
-static inline bool polygon_on_table(
+static inline bool polyhedron_on_table(
     const DelaunayTable* const this,
-    const PolygonTree* const polygon
+    const PolyhedronTree* const polyhedron
 ) {
     const size_t nDim = this->nIn;
 
-    for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+    for (size_t i = 0 ; i < nVerticesInPolyhedron(nDim) ; i++) {
         const bool vertexOnTable = (
-            polygon->vertices[i] >= tablePointBegin(this) &&
-            polygon->vertices[i] <  tablePointEnd(this)
+            polyhedron->vertices[i] >= tablePointBegin(this) &&
+            polyhedron->vertices[i] <  tablePointEnd(this)
         );
         if (!vertexOnTable) {return false;}
     }
@@ -351,18 +351,18 @@ static inline bool polygon_on_table(
     return true;
 }
 
-int ensure_polygon_on_table(
+int ensure_polyhedron_on_table(
     const DelaunayTable* const this,
     const double* const coordinates,
-    PolygonTree** const polygon,
+    PolyhedronTree** const polyhedron,
     double* const divisionRatio
 ) {
     const size_t nDim = this->nIn;
-    PolygonTree* const previousPolygon = *polygon;
+    PolyhedronTree* const previousPolyhedron = *polyhedron;
 
     // Early return
     // [1] if all vertices on table -> success (do nothing)
-    if (polygon_on_table(this, previousPolygon)) {
+    if (polyhedron_on_table(this, previousPolyhedron)) {
         return SUCCESS;
     }
     // [2] else if coordinates not on face -> failure
@@ -373,23 +373,23 @@ int ensure_polygon_on_table(
     int status = SUCCESS;
 
     IndexVector*       overlapVertices = NULL;
-    PolygonTreeVector* aroundPolygons  = NULL;
+    PolyhedronTreeVector* aroundPolyhedrons  = NULL;
 
     overlapVertices = IndexVector__new(0);
     if (!overlapVertices) {
         status = FAILURE; goto finally;
     }
 
-    aroundPolygons = PolygonTreeVector__new(0);
-    if (!aroundPolygons) {
+    aroundPolyhedrons = PolyhedronTreeVector__new(0);
+    if (!aroundPolyhedrons) {
         status = FAILURE; goto finally;
     }
 
-    for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+    for (size_t i = 0 ; i < nVerticesInPolyhedron(nDim) ; i++) {
         if (double__compare(divisionRatio[i], 0.0) != 0) {
             status = IndexVector__append(
                 overlapVertices,
-                previousPolygon->vertices[i]
+                previousPolyhedron->vertices[i]
             );
             if (status) {
                 goto finally;
@@ -397,26 +397,26 @@ int ensure_polygon_on_table(
         }
     }
 
-    status = PolygonTree__get_around(
+    status = PolyhedronTree__get_around(
         nDim,
-        previousPolygon,
+        previousPolyhedron,
         overlapVertices,
         this->neighborPairMap,
-        aroundPolygons
+        aroundPolyhedrons
     );
     if (status) {
         goto finally;
     }
 
-    // return first polygon on table
-    for (size_t i = 0 ; i < (aroundPolygons->size) ; i++) {
-        PolygonTree* const candidate
-            = PolygonTreeVector__elements(aroundPolygons)[i];
+    // return first polyhedron on table
+    for (size_t i = 0 ; i < (aroundPolyhedrons->size) ; i++) {
+        PolyhedronTree* const candidate
+            = PolyhedronTreeVector__elements(aroundPolyhedrons)[i];
 
-        if (candidate == previousPolygon)      {continue;}
-        if (!polygon_on_table(this, candidate)) {continue;}
+        if (candidate == previousPolyhedron)      {continue;}
+        if (!polyhedron_on_table(this, candidate)) {continue;}
 
-        status = PolygonTree__calculate_divisionRatio(
+        status = PolyhedronTree__calculate_divisionRatio(
             nDim,
             candidate,
             coordinates,
@@ -428,18 +428,18 @@ int ensure_polygon_on_table(
             goto finally;
         }
 
-        *polygon = candidate;
+        *polyhedron = candidate;
         goto finally;
     }
 
-    // polygon on table not found -> failure
-    *polygon = NULL;
+    // polyhedron on table not found -> failure
+    *polyhedron = NULL;
     status = FAILURE;
 
 finally:
 
     if (overlapVertices) {IndexVector__delete(overlapVertices);}
-    if (aroundPolygons)  {PolygonTreeVector__delete(aroundPolygons);}
+    if (aroundPolyhedrons)  {PolyhedronTreeVector__delete(aroundPolyhedrons);}
 
     return status;
 }

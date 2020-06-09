@@ -1,5 +1,5 @@
 
-#include "DelaunayTable.PolygonTree.h"
+#include "DelaunayTable.PolyhedronTree.h"
 
 #include "DelaunayTable.Error.h"
 #include "DelaunayTable.IndexVector.h"
@@ -52,20 +52,20 @@ static int FaceVector__append(
 }
 
 
-/// ## PolygonTree methods
-PolygonTree* PolygonTree__new(
+/// ## PolyhedronTree methods
+PolyhedronTree* PolyhedronTree__new(
     const size_t nDim
 ) {
-    PolygonTree* const this = (PolygonTree*) MALLOC(sizeof(PolygonTree));
+    PolyhedronTree* const this = (PolyhedronTree*) MALLOC(sizeof(PolyhedronTree));
     if (!this) {goto error;}
 
     this->vertices = NULL;
     this->children = NULL;
 
-    this->vertices = (size_t*) CALLOC(nVerticesInPolygon(nDim), sizeof(size_t));
+    this->vertices = (size_t*) CALLOC(nVerticesInPolyhedron(nDim), sizeof(size_t));
     if (!(this->vertices)) {goto error;}
 
-    this->children = PolygonTreeVector__new(0);
+    this->children = PolyhedronTreeVector__new(0);
     if (!(this->children)) {goto error;}
 
     return this;
@@ -74,31 +74,31 @@ error:
 
     if (this) {
         if (this->vertices) FREE(this->vertices);
-        if (this->children) PolygonTreeVector__delete(this->children);
+        if (this->children) PolyhedronTreeVector__delete(this->children);
         FREE(this);
     }
 
     return NULL;
 }
 
-void PolygonTree__delete(
-    PolygonTree* const this
+void PolyhedronTree__delete(
+    PolyhedronTree* const this
 ) {
     FREE(this->vertices);
-    PolygonTreeVector__delete(this->children);
+    PolyhedronTreeVector__delete(this->children);
     FREE(this);
 }
 
-int PolygonTree__append_child(
-    PolygonTree* const this,
-    PolygonTree* const child
+int PolyhedronTree__append_child(
+    PolyhedronTree* const this,
+    PolyhedronTree* const child
 ) {
-    return PolygonTreeVector__append(this->children, child);
+    return PolyhedronTreeVector__append(this->children, child);
 }
 
-int PolygonTree__calculate_divisionRatio(
+int PolyhedronTree__calculate_divisionRatio(
     const size_t nDim,
-    const PolygonTree* const this,
+    const PolyhedronTree* const this,
     const double* const coordinates,
     const Points points,
     Points__get_coordinates* const get_coordinates,
@@ -107,15 +107,15 @@ int PolygonTree__calculate_divisionRatio(
     int status = SUCCESS;
 
     const double** const shape = (const double**) MALLOC(
-        nVerticesInPolygon(nDim) * sizeof(double*)
+        nVerticesInPolyhedron(nDim) * sizeof(double*)
     );
     if (!shape) {status = FAILURE; goto finally;}
 
-    for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+    for (size_t i = 0 ; i < nVerticesInPolyhedron(nDim) ; i++) {
         shape[i] = get_coordinates(points, this->vertices[i]);
     }
 
-    status = divisionRatioFromPolygonVertices(
+    status = divisionRatioFromPolyhedronVertices(
         nDim,
         shape,
         coordinates,
@@ -130,79 +130,79 @@ finally:
     return status;
 }
 
-int PolygonTree__find(
+int PolyhedronTree__find(
     const size_t nDim,
-    PolygonTree* const rootPolygon,
+    PolyhedronTree* const rootPolyhedron,
     const double* const coordinates,
     const Points points,
     Points__get_coordinates* const get_coordinates,
-    PolygonTree** const foundPolygon,
+    PolyhedronTree** const foundPolyhedron,
     double* const divisionRatio
 ) {
     int status = SUCCESS;
 
-    status = PolygonTree__calculate_divisionRatio(
+    status = PolyhedronTree__calculate_divisionRatio(
         nDim,
-        rootPolygon,
+        rootPolyhedron,
         coordinates,
         points,
         get_coordinates,
         divisionRatio
     );
     if (status) {
-        *foundPolygon = NULL;
+        *foundPolyhedron = NULL;
         return status;
     }
 
-    // if coordinates not in rootPolygon: SUCCESS, result is NULL
+    // if coordinates not in rootPolyhedron: SUCCESS, result is NULL
     if (!divisionRatio__inside(nDim, divisionRatio)) {
-        *foundPolygon = NULL;
+        *foundPolyhedron = NULL;
         return SUCCESS;
     }
 
-    // ** coordinates in rootPolygon **
+    // ** coordinates in rootPolyhedron **
 
-    // if rootPolygon does not have children: SUCCESS, result is rootPolygon
-    if (PolygonTree__nChildren(rootPolygon) == 0) {
-        *foundPolygon = rootPolygon;
+    // if rootPolyhedron does not have children: SUCCESS, result is rootPolyhedron
+    if (PolyhedronTree__nChildren(rootPolyhedron) == 0) {
+        *foundPolyhedron = rootPolyhedron;
         return SUCCESS;
     }
 
-    // ** rootPolygon has children **
+    // ** rootPolyhedron has children **
 
     // if any find(child, ...) success: SUCCESS, return first result
-    for (size_t i = 0 ; i < PolygonTree__nChildren(rootPolygon) ; i++) {
-        status = PolygonTree__find(
+    for (size_t i = 0 ; i < PolyhedronTree__nChildren(rootPolyhedron) ; i++) {
+        status = PolyhedronTree__find(
             nDim,
-            PolygonTree__children(rootPolygon)[i],
+            PolyhedronTree__children(rootPolyhedron)[i],
             coordinates,
             points,
             get_coordinates,
-            foundPolygon,
+            foundPolyhedron,
             divisionRatio
         );
         if (status) {
             return status;
         }
 
-        if (*foundPolygon) return SUCCESS;
+        if (*foundPolyhedron) return SUCCESS;
     }
 
     // else: failure
-    *foundPolygon = NULL;
+    *foundPolyhedron = NULL;
     return FAILURE;
 }
 
-int PolygonTree__get_around(
+int PolyhedronTree__get_around(
     const size_t nDim,
-    const PolygonTree* const polygon,
+    const PolyhedronTree* const polyhedron,
     const IndexVector* const overlapVertices,
     const NeighborPairMap* const neighborPairMap,
-    PolygonTreeVector* const aroundPolygons
+    PolyhedronTreeVector* const aroundPolyhedrons
 ) {
     // Early return
-    for (size_t i = 0 ; i < (aroundPolygons->size) ; i++) {
-        if (polygon == PolygonTreeVector__elements(aroundPolygons)[i]) {
+    for (size_t i = 0 ; i < (aroundPolyhedrons->size) ; i++) {
+        if (polyhedron == PolyhedronTreeVector__elements(aroundPolyhedrons)[i]) {
             return SUCCESS;
         }
     }
@@ -215,20 +215,20 @@ int PolygonTree__get_around(
         status = FAILURE; goto finally;
     }
 
-    status = PolygonTreeVector__append(
-        aroundPolygons,
-        (PolygonTree*) polygon
+    status = PolyhedronTreeVector__append(
+        aroundPolyhedrons,
+        (PolyhedronTree*) polyhedron
     );
     if (status) {
         goto finally;
     }
 
-    for (size_t iEx = 0 ; iEx < nVerticesInPolygon(nDim) ; iEx++) {
+    for (size_t iEx = 0 ; iEx < nVerticesInPolyhedron(nDim) ; iEx++) {
         for (size_t i = 0 ; i < nVerticesInFace(nDim) ; i++) {
             if (i < iEx) {
-                IndexVector__elements(face)[i] = polygon->vertices[i+0];
+                IndexVector__elements(face)[i] = polyhedron->vertices[i+0];
             } else {
-                IndexVector__elements(face)[i] = polygon->vertices[i+1];
+                IndexVector__elements(face)[i] = polyhedron->vertices[i+1];
             }
         }
 
@@ -245,14 +245,14 @@ int PolygonTree__get_around(
         }
 
         for (size_t i = 0 ; i < 2 ; i++) {
-            PolygonTree* candidate = neighborPair[i].polygon;
-            if (candidate && candidate != polygon) {
-                status = PolygonTree__get_around(
+            PolyhedronTree* candidate = neighborPair[i].polyhedron;
+            if (candidate && candidate != polyhedron) {
+                status = PolyhedronTree__get_around(
                     nDim,
                     candidate,
                     overlapVertices,
                     neighborPairMap,
-                    aroundPolygons
+                    aroundPolyhedrons
                 );
                 if (status) {
                     goto finally;
@@ -269,42 +269,42 @@ finally:
 }
 
 
-/// ## PolygonTreeVector methods
-PolygonTreeVector* PolygonTreeVector__new(
+/// ## PolyhedronTreeVector methods
+PolyhedronTreeVector* PolyhedronTreeVector__new(
     const size_t size
 ) {
-    return Vector__new(size, sizeof(PolygonTree*));
+    return Vector__new(size, sizeof(PolyhedronTree*));
 }
 
-void PolygonTreeVector__delete(
-    PolygonTreeVector* const this
+void PolyhedronTreeVector__delete(
+    PolyhedronTreeVector* const this
 ) {
     Vector__delete(this);
 }
 
-void PolygonTreeVector__delete_elements(
-    PolygonTreeVector* const this
+void PolyhedronTreeVector__delete_elements(
+    PolyhedronTreeVector* const this
 ) {
     for (size_t i = 0 ; i < (this->size) ; i++) {
-        PolygonTree__delete(PolygonTreeVector__elements(this)[i]);
+        PolyhedronTree__delete(PolyhedronTreeVector__elements(this)[i]);
     }
 }
 
-int PolygonTreeVector__append(
-    PolygonTreeVector* const this,
-    PolygonTree* polygon
+int PolyhedronTreeVector__append(
+    PolyhedronTreeVector* const this,
+    PolyhedronTree* polyhedron
 ) {
     return Vector__append(
         this,
-        &polygon,
-        sizeof(PolygonTree*)
+        &polyhedron,
+        sizeof(PolyhedronTree*)
     );
 }
 
-static int PolygonTreeVector__divide_polygon_inside(
+static int PolyhedronTreeVector__divide_polyhedron_inside(
     const size_t nDim,
-    PolygonTreeVector* this,
-    PolygonTree* const polygonToDivide,
+    PolyhedronTreeVector* this,
+    PolyhedronTree* const polyhedronToDivide,
     const size_t pointToDivide,
     const Points points,
     Points__get_coordinates* const get_coordinates,
@@ -313,12 +313,12 @@ static int PolygonTreeVector__divide_polygon_inside(
     const enum Verbosity verbosity
 ) {
     if (verbosity >= Verbosity__debug) {
-        Runtime__send_message("- - Divide polygon by inside point");
+        Runtime__send_message("- - Divide polyhedron by inside point");
     }
 
     int status = SUCCESS;
 
-    const size_t previousPolygonVectorSize = this->size;
+    const size_t previousPolyhedronVectorSize = this->size;
 
     IndexVector* face = IndexVector__new(nVerticesInFace(nDim));
     if (!face) {
@@ -326,55 +326,55 @@ static int PolygonTreeVector__divide_polygon_inside(
     }
 
     /**
-     * Add new polygons.
-     * Each new polygon has `nDim+1` vertices.
+     * Add new polyhedrons.
+     * Each new polyhedron has `nDim+1` vertices.
      * - One vertex is `pointToDivide`.
-     * - `nDim` vertices are selected from the `nDim+1` vertices in `polygonToDivide`.
+     * - `nDim` vertices are selected from the `nDim+1` vertices in `polyhedronToDivide`.
      */
-    for (size_t iEx = 0 ; iEx < nVerticesInPolygon(nDim) ; iEx++) {
-        // Alloc polygon & append PolygonTreeVector
-        PolygonTree* const polygon = PolygonTree__new(nDim);
-        if (!polygon) {
+    for (size_t iEx = 0 ; iEx < nVerticesInPolyhedron(nDim) ; iEx++) {
+        // Alloc polyhedron & append PolyhedronTreeVector
+        PolyhedronTree* const polyhedron = PolyhedronTree__new(nDim);
+        if (!polyhedron) {
             status = FAILURE; goto finally;
         }
 
-        status = PolygonTreeVector__append(
-            this, polygon
+        status = PolyhedronTreeVector__append(
+            this, polyhedron
         );
         if (status) {
-            PolygonTree__delete(polygon);
+            PolyhedronTree__delete(polyhedron);
             goto finally;
         }
 
-        status = PolygonTree__append_child(
-            polygonToDivide,
-            polygon
+        status = PolyhedronTree__append_child(
+            polyhedronToDivide,
+            polyhedron
         );
         if (status) {
             goto finally;
         }
 
-        // Set vertices of polygon
-        for (size_t i = 0 ; i < (nVerticesInPolygon(nDim)-1) ; i++) {
+        // Set vertices of polyhedron
+        for (size_t i = 0 ; i < (nVerticesInPolyhedron(nDim)-1) ; i++) {
             if (i < iEx) {
-                polygon->vertices[i] = polygonToDivide->vertices[i+0];
+                polyhedron->vertices[i] = polyhedronToDivide->vertices[i+0];
             } else {
-                polygon->vertices[i] = polygonToDivide->vertices[i+1];
+                polyhedron->vertices[i] = polyhedronToDivide->vertices[i+1];
             }
         }
-        polygon->vertices[nVerticesInPolygon(nDim)-1] = pointToDivide;
+        polyhedron->vertices[nVerticesInPolyhedron(nDim)-1] = pointToDivide;
 
-        sort__size_t__Array(polygon->vertices, nVerticesInPolygon(nDim));
+        sort__size_t__Array(polyhedron->vertices, nVerticesInPolyhedron(nDim));
 
         if (verbosity >= Verbosity__debug) {
             char buffer[1024];
 
-            sprintf(buffer, "- - - Append new polygon {");
-            for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+            sprintf(buffer, "- - - Append new polyhedron {");
+            for (size_t i = 0 ; i < nVerticesInPolyhedron(nDim) ; i++) {
                 sprintf(
                     buffer+strlen(buffer), "%lu%s",
-                    polygon->vertices[i]+1,
-                    (i < (nVerticesInPolygon(nDim)-1)) ? ", " : "}"
+                    polyhedron->vertices[i]+1,
+                    (i < (nVerticesInPolyhedron(nDim)-1)) ? ", " : "}"
                 );
             }
 
@@ -382,25 +382,25 @@ static int PolygonTreeVector__divide_polygon_inside(
         }
     }
 
-    PolygonTree** const newPolygons = PolygonTreeVector__elements(this) + previousPolygonVectorSize;
+    PolyhedronTree** const newPolyhedrons = PolyhedronTreeVector__elements(this) + previousPolyhedronVectorSize;
 
     /**
-     * Add new faces inside `polygonToDivide`
+     * Add new faces inside `polyhedronToDivide`
      * Each new face has `nDim` vertices.
      * - One vertex is `pointToDivide`.
-     * - `nDim-1` vertices are selected from the `nDim+1` vertices in `polygonToDivide`.
+     * - `nDim-1` vertices are selected from the `nDim+1` vertices in `polyhedronToDivide`.
      */
-    for (size_t iEx_a = 0       ; iEx_a < nVerticesInPolygon(nDim) ; iEx_a++)
-    for (size_t iEx_b = iEx_a+1 ; iEx_b < nVerticesInPolygon(nDim) ; iEx_b++)
+    for (size_t iEx_a = 0       ; iEx_a < nVerticesInPolyhedron(nDim) ; iEx_a++)
+    for (size_t iEx_b = iEx_a+1 ; iEx_b < nVerticesInPolyhedron(nDim) ; iEx_b++)
     {
         // Set vertices of face
         for (size_t i = 0 ; i < (nVerticesInFace(nDim)-1) ; i++) {
             if (i+0 < iEx_a) {
-                IndexVector__elements(face)[i] = polygonToDivide->vertices[i+0];
+                IndexVector__elements(face)[i] = polyhedronToDivide->vertices[i+0];
             } else if (i+1 < iEx_b) {
-                IndexVector__elements(face)[i] = polygonToDivide->vertices[i+1];
+                IndexVector__elements(face)[i] = polyhedronToDivide->vertices[i+1];
             } else {
-                IndexVector__elements(face)[i] = polygonToDivide->vertices[i+2];
+                IndexVector__elements(face)[i] = polyhedronToDivide->vertices[i+2];
             }
         }
         IndexVector__elements(face)[nVerticesInFace(nDim)-1] = pointToDivide;
@@ -409,8 +409,8 @@ static int PolygonTreeVector__divide_polygon_inside(
 
         // Set to neighborPairMap
         Neighbor neighborPair[2] = {
-            {polygonToDivide->vertices[iEx_a], newPolygons[iEx_b]},
-            {polygonToDivide->vertices[iEx_b], newPolygons[iEx_a]}
+            {polyhedronToDivide->vertices[iEx_a], newPolyhedrons[iEx_b]},
+            {polyhedronToDivide->vertices[iEx_b], newPolyhedrons[iEx_a]}
         };
 
         status = NeighborPairMap__set(
@@ -422,17 +422,17 @@ static int PolygonTreeVector__divide_polygon_inside(
     }
 
     /**
-     * Update faces outside `polygonToDivide`
+     * Update faces outside `polyhedronToDivide`
      * Each face has `nDim` vertices.
-     * - `nDim` vertices are selected from the `nDim+1` vertices in `polygonToDivide`.
+     * - `nDim` vertices are selected from the `nDim+1` vertices in `polyhedronToDivide`.
      */
-    for (size_t iEx = 0 ; iEx < nVerticesInPolygon(nDim) ; iEx++) {
+    for (size_t iEx = 0 ; iEx < nVerticesInPolyhedron(nDim) ; iEx++) {
         // Set vertices of face
         for (size_t i = 0 ; i < nVerticesInFace(nDim) ; i++) {
             if (i < iEx) {
-                IndexVector__elements(face)[i] = polygonToDivide->vertices[i+0];
+                IndexVector__elements(face)[i] = polyhedronToDivide->vertices[i+0];
             } else {
-                IndexVector__elements(face)[i] = polygonToDivide->vertices[i+1];
+                IndexVector__elements(face)[i] = polyhedronToDivide->vertices[i+1];
             }
         }
 
@@ -440,9 +440,9 @@ static int PolygonTreeVector__divide_polygon_inside(
         status = NeighborPairMap__update_by_opposite(
             neighborPairMap,
             face,
-            polygonToDivide->vertices[iEx],  // opposite_old
+            polyhedronToDivide->vertices[iEx],  // opposite_old
             pointToDivide,                   // opposite_new
-            newPolygons[iEx]                 // polygon_new
+            newPolyhedrons[iEx]                 // polyhedron_new
         );
         if (status) {
             goto finally;
@@ -464,10 +464,10 @@ finally:
     return status;
 }
 
-static int PolygonTreeVector__divide_polygon_by_face(
+static int PolyhedronTreeVector__divide_polyhedron_by_face(
     const size_t nDim,
-    PolygonTreeVector* const this,
-    PolygonTree* const polygonToDivide,
+    PolyhedronTreeVector* const this,
+    PolyhedronTree* const polyhedronToDivide,
     const size_t pointToDivide,
     const double* divisionRatio,
     const Points points,
@@ -477,21 +477,21 @@ static int PolygonTreeVector__divide_polygon_by_face(
     const enum Verbosity verbosity
 ) {
     if (verbosity >= Verbosity__debug) {
-        Runtime__send_message("- - Divide polygon by point on face");
+        Runtime__send_message("- - Divide polyhedron by point on face");
     }
 
     int status = SUCCESS;
 
-    const size_t previousPolygonVectorSize = this->size;
+    const size_t previousPolyhedronVectorSize = this->size;
 
     // Resources
-    PolygonTreeVector* aroundPolygons  = NULL;
+    PolyhedronTreeVector* aroundPolyhedrons  = NULL;
     IndexVector*       overlapVertices = NULL;
     IndexVector*       face            = NULL;
     bool*              faceChecked     = NULL;
 
-    aroundPolygons = PolygonTreeVector__new(0);
-    if (!aroundPolygons) {
+    aroundPolyhedrons = PolyhedronTreeVector__new(0);
+    if (!aroundPolyhedrons) {
         status = FAILURE; goto finally;
     }
 
@@ -506,11 +506,11 @@ static int PolygonTreeVector__divide_polygon_by_face(
     }
 
     // Get `overlapVertices`
-    for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+    for (size_t i = 0 ; i < nVerticesInPolyhedron(nDim) ; i++) {
         if (double__compare(divisionRatio[i], 0.0) != 0) {
             status = IndexVector__append(
                 overlapVertices,
-                polygonToDivide->vertices[i]
+                polyhedronToDivide->vertices[i]
             );
             if (status) {
                 goto finally;
@@ -518,41 +518,41 @@ static int PolygonTreeVector__divide_polygon_by_face(
         }
     }
 
-    // Get `aroundPolygons`
-    status = PolygonTree__get_around(
+    // Get `aroundPolyhedrons`
+    status = PolyhedronTree__get_around(
         nDim,
-        polygonToDivide,
+        polyhedronToDivide,
         overlapVertices,
         neighborPairMap,
-        aroundPolygons
+        aroundPolyhedrons
     );
     if (status) {
         goto finally;
     }
 
-    const size_t nAroundPolygons  = aroundPolygons->size;
+    const size_t nAroundPolyhedrons  = aroundPolyhedrons->size;
     const size_t nOverlapVertices = overlapVertices->size;
 
     if (verbosity >= Verbosity__detail) {
         Runtime__send_message(
-            "- - - Find %lu around polygons",
-            nAroundPolygons
+            "- - - Find %lu around polyhedrons",
+            nAroundPolyhedrons
         );
 
-        for (size_t iAround = 0 ; iAround < nAroundPolygons ; iAround++) {
-            const PolygonTree* const aroundPolygon
-                = PolygonTreeVector__elements(aroundPolygons)[iAround];
+        for (size_t iAround = 0 ; iAround < nAroundPolyhedrons ; iAround++) {
+            const PolyhedronTree* const aroundPolyhedron
+                = PolyhedronTreeVector__elements(aroundPolyhedrons)[iAround];
 
             char buffer[1024];
             sprintf(
-                buffer, "- - - - aroundPolygon[%2lu] {",
+                buffer, "- - - - aroundPolyhedron[%2lu] {",
                 iAround+1
             );
-            for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+            for (size_t i = 0 ; i < nVerticesInPolyhedron(nDim) ; i++) {
                 sprintf(
                     buffer+strlen(buffer), "%lu%s",
-                    aroundPolygon->vertices[i]+1,
-                    (i < (nVerticesInPolygon(nDim)-1)) ? ", " : "}"
+                    aroundPolyhedron->vertices[i]+1,
+                    (i < (nVerticesInPolyhedron(nDim)-1)) ? ", " : "}"
                 );
             }
 
@@ -561,64 +561,64 @@ static int PolygonTreeVector__divide_polygon_by_face(
     }
 
     /**
-     * Add new polygons.
-     * Repeat new polygons creation for all `aroundPolygon` in `aroundPolygons`.
-     * - Each new polygon has `nDim+1` vertices.
+     * Add new polyhedrons.
+     * Repeat new polyhedrons creation for all `aroundPolyhedron` in `aroundPolyhedrons`.
+     * - Each new polyhedron has `nDim+1` vertices.
      * - - One vertex is `pointToDivide`.
      * - - `nOverlapVertices-1`      vertices are selected from the vertices in `overlapVertices`.
-     * - - `nDim+1-nOverlapVertices` vertices are selected from non-overlap vertices of `aroundPolygon`.
+     * - - `nDim+1-nOverlapVertices` vertices are selected from non-overlap vertices of `aroundPolyhedron`.
      */
-    for (size_t iAround = 0 ; iAround < nAroundPolygons ; iAround++) {
-        PolygonTree* const aroundPolygon
-            = PolygonTreeVector__elements(aroundPolygons)[iAround];
+    for (size_t iAround = 0 ; iAround < nAroundPolyhedrons ; iAround++) {
+        PolyhedronTree* const aroundPolyhedron
+            = PolyhedronTreeVector__elements(aroundPolyhedrons)[iAround];
 
         for (size_t iEx = 0 ; iEx < nOverlapVertices ; iEx++) {
-            // Allocate polygon & append PolygonTrees Vector
-            PolygonTree* polygon = PolygonTree__new(nDim);
-            if (!polygon) {
+            // Allocate polyhedron & append PolyhedronTrees Vector
+            PolyhedronTree* polyhedron = PolyhedronTree__new(nDim);
+            if (!polyhedron) {
                 status = FAILURE; goto finally;
             }
 
-            status = PolygonTreeVector__append(
+            status = PolyhedronTreeVector__append(
                 this,
-                polygon
+                polyhedron
             );
             if (status) {
-                PolygonTree__delete(polygon);
+                PolyhedronTree__delete(polyhedron);
                 goto finally;
             }
 
-            status = PolygonTree__append_child(
-                aroundPolygon,
-                polygon
+            status = PolyhedronTree__append_child(
+                aroundPolyhedron,
+                polyhedron
             );
             if (status) {
                 goto finally;
             }
 
-            // Set vertices of polygon
+            // Set vertices of polyhedron
             const size_t vertexToExclude = IndexVector__elements(overlapVertices)[iEx];
 
             size_t offset = 0;
-            for (size_t i = 0 ; i < (nVerticesInPolygon(nDim)-1) ; i++) {
-                if (aroundPolygon->vertices[i+offset] == vertexToExclude) {
+            for (size_t i = 0 ; i < (nVerticesInPolyhedron(nDim)-1) ; i++) {
+                if (aroundPolyhedron->vertices[i+offset] == vertexToExclude) {
                     offset++;
                 }
-                polygon->vertices[i] = aroundPolygon->vertices[i+offset];;
+                polyhedron->vertices[i] = aroundPolyhedron->vertices[i+offset];;
             }
-            polygon->vertices[nVerticesInPolygon(nDim)-1] = pointToDivide;
+            polyhedron->vertices[nVerticesInPolyhedron(nDim)-1] = pointToDivide;
 
-            sort__size_t__Array(polygon->vertices, nVerticesInPolygon(nDim));
+            sort__size_t__Array(polyhedron->vertices, nVerticesInPolyhedron(nDim));
 
             if (verbosity >= Verbosity__debug) {
                 char buffer[1024];
 
-                sprintf(buffer, "- - - Append new polygon {");
-                for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+                sprintf(buffer, "- - - Append new polyhedron {");
+                for (size_t i = 0 ; i < nVerticesInPolyhedron(nDim) ; i++) {
                     sprintf(
                         buffer+strlen(buffer), "%lu%s",
-                        polygon->vertices[i]+1,
-                        (i < (nVerticesInPolygon(nDim)-1)) ? ", " : "}"
+                        polyhedron->vertices[i]+1,
+                        (i < (nVerticesInPolyhedron(nDim)-1)) ? ", " : "}"
                     );
                 }
 
@@ -627,12 +627,12 @@ static int PolygonTreeVector__divide_polygon_by_face(
         }
     }
 
-    PolygonTree** const newPolygons = PolygonTreeVector__elements(this) + previousPolygonVectorSize;
+    PolyhedronTree** const newPolyhedrons = PolyhedronTreeVector__elements(this) + previousPolyhedronVectorSize;
 
     /**
-     * Add new faces inside polygon
+     * Add new faces inside polyhedron
      */
-    const size_t nFaces = nAroundPolygons * nOverlapVertices * nVerticesInPolygon(nDim);
+    const size_t nFaces = nAroundPolyhedrons * nOverlapVertices * nVerticesInPolyhedron(nDim);
     faceChecked = (bool*) CALLOC(nFaces, sizeof(bool));
     if (!faceChecked) {
         status = FAILURE; goto finally;
@@ -641,28 +641,28 @@ static int PolygonTreeVector__divide_polygon_by_face(
     for (size_t iFace_a = 0 ; iFace_a < nFaces ; iFace_a++) {
         if (faceChecked[iFace_a]) {continue;}
 
-        size_t iPolygon_a = iFace_a / nVerticesInPolygon(nDim);
-        size_t iEx_a      = iFace_a % nVerticesInPolygon(nDim);
+        size_t iPolyhedron_a = iFace_a / nVerticesInPolyhedron(nDim);
+        size_t iEx_a      = iFace_a % nVerticesInPolyhedron(nDim);
 
-        PolygonTree* polygon_a = newPolygons[iPolygon_a];
-        size_t opposite_a = polygon_a->vertices[iEx_a];
+        PolyhedronTree* polyhedron_a = newPolyhedrons[iPolyhedron_a];
+        size_t opposite_a = polyhedron_a->vertices[iEx_a];
 
         if (opposite_a == pointToDivide) {continue;}
 
         for (size_t i = 0 ; i < nVerticesInFace(nDim) ; i++) {
             if (i < iEx_a) {
-                IndexVector__elements(face)[i] = polygon_a->vertices[i+0];
+                IndexVector__elements(face)[i] = polyhedron_a->vertices[i+0];
             } else {
-                IndexVector__elements(face)[i] = polygon_a->vertices[i+1];
+                IndexVector__elements(face)[i] = polyhedron_a->vertices[i+1];
             }
         };
 
         for (size_t iFace_b = iFace_a+1 ; iFace_b < nFaces ; iFace_b++) {
-            size_t iPolygon_b = iFace_b / nVerticesInPolygon(nDim);
-            size_t iEx_b      = iFace_b % nVerticesInPolygon(nDim);
+            size_t iPolyhedron_b = iFace_b / nVerticesInPolyhedron(nDim);
+            size_t iEx_b      = iFace_b % nVerticesInPolyhedron(nDim);
 
-            PolygonTree* polygon_b = newPolygons[iPolygon_b];
-            size_t opposite_b = polygon_b->vertices[iEx_b];
+            PolyhedronTree* polyhedron_b = newPolyhedrons[iPolyhedron_b];
+            size_t opposite_b = polyhedron_b->vertices[iEx_b];
 
             if (contains__size_t__Array(
                 nVerticesInFace(nDim), IndexVector__elements(face),
@@ -670,15 +670,15 @@ static int PolygonTreeVector__divide_polygon_by_face(
             )) {continue;}
 
             if (!contains__size_t__Array(
-                nVerticesInPolygon(nDim), polygon_b->vertices,
+                nVerticesInPolyhedron(nDim), polyhedron_b->vertices,
                 nVerticesInFace(nDim)   , IndexVector__elements(face)
             )) {continue;}
 
             faceChecked[iFace_b] = true;
 
             Neighbor neighborPair[2] = {
-                {opposite_a, polygon_a},
-                {opposite_b, polygon_b}
+                {opposite_a, polyhedron_a},
+                {opposite_b, polyhedron_b}
             };
 
             status = NeighborPairMap__set(
@@ -689,24 +689,24 @@ static int PolygonTreeVector__divide_polygon_by_face(
     }
 
     /**
-     * Update faces outside polygon
-     * Repeat face update for all `aroundPolygon` in `aroundPolygons`.
+     * Update faces outside polyhedron
+     * Repeat face update for all `aroundPolyhedron` in `aroundPolyhedrons`.
      * - Each face has `nDim` vertices.
      * - - `nOverlapVertices-1`      vertices are selected from the vertices in `overlapVertices`.
-     * - - `nDim+1-nOverlapVertices` vertices are selected from non-overlap vertices of `aroundPolygon`.
+     * - - `nDim+1-nOverlapVertices` vertices are selected from non-overlap vertices of `aroundPolyhedron`.
      */
-    for (size_t iAround = 0 ; iAround < nAroundPolygons  ; iAround++)
+    for (size_t iAround = 0 ; iAround < nAroundPolyhedrons  ; iAround++)
     for (size_t iEx     = 0 ; iEx     < nOverlapVertices ; iEx++    ) {
-        PolygonTree* const newPolygon = newPolygons[iAround * nOverlapVertices + iEx];
+        PolyhedronTree* const newPolyhedron = newPolyhedrons[iAround * nOverlapVertices + iEx];
         const size_t vertexToUpdate = IndexVector__elements(overlapVertices)[iEx];
 
         // Set vertices of face
         size_t offset = 0;
         for (size_t i = 0 ; i < nVerticesInFace(nDim) ; i++) {
-            if (newPolygon->vertices[i+offset] == pointToDivide) {
+            if (newPolyhedron->vertices[i+offset] == pointToDivide) {
                 offset++;
             }
-            IndexVector__elements(face)[i] = newPolygon->vertices[i+offset];
+            IndexVector__elements(face)[i] = newPolyhedron->vertices[i+offset];
         }
 
         // Update neighbor
@@ -715,7 +715,7 @@ static int PolygonTreeVector__divide_polygon_by_face(
             face,
             vertexToUpdate,
             pointToDivide,
-            newPolygon
+            newPolyhedron
         );
         if (status) {
             goto finally;
@@ -724,7 +724,7 @@ static int PolygonTreeVector__divide_polygon_by_face(
 
 finally:
 
-    if (aroundPolygons)  {PolygonTreeVector__delete(aroundPolygons);}
+    if (aroundPolyhedrons)  {PolyhedronTreeVector__delete(aroundPolyhedrons);}
     if (overlapVertices) {IndexVector__delete(overlapVertices);}
     if (face)            {IndexVector__delete(face);}
     if (faceChecked)     {FREE(faceChecked);}
@@ -751,29 +751,29 @@ static int Face__is_valid(
     if (!NeighborPairMap__get(neighborPairMap, face, &neighborPair)) {
         status = FAILURE; goto finally;
     }
-    if (!neighborPair[0].polygon || !neighborPair[1].polygon) {
+    if (!neighborPair[0].polyhedron || !neighborPair[1].polyhedron) {
         *validFace = true;
         goto finally;
     }
 
     shape = (const double**) MALLOC(
-        nVerticesInPolygon(nDim) * sizeof(double*)
+        nVerticesInPolyhedron(nDim) * sizeof(double*)
     );
     if (!shape) {
         status = FAILURE; goto finally;
     }
 
-    const PolygonTree* const polygon = neighborPair[0].polygon;
+    const PolyhedronTree* const polyhedron = neighborPair[0].polyhedron;
 
-    for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
-        shape[i] = get_coordinates(points, polygon->vertices[i]);
+    for (size_t i = 0 ; i < nVerticesInPolyhedron(nDim) ; i++) {
+        shape[i] = get_coordinates(points, polyhedron->vertices[i]);
     }
 
     const double* point = get_coordinates(points, neighborPair[1].opposite);
 
     bool insideCircumsphere;
 
-    status = insideCircumsphereOfPolygon(
+    status = insideCircumsphereOfPolyhedron(
         nDim,
         shape,
         point,
@@ -792,9 +792,9 @@ finally:
     return status;
 }
 
-static int PolygonTreeVector__flip_face(
+static int PolyhedronTreeVector__flip_face(
     const size_t nDim,
-    PolygonTreeVector* const this,
+    PolyhedronTreeVector* const this,
     const IndexVector* faceToFlip,
     const size_t pointToDivide,
     const Points points,
@@ -805,7 +805,7 @@ static int PolygonTreeVector__flip_face(
 ) {
     int status = SUCCESS;
 
-    const size_t previousPolygonVectorSize = this->size;
+    const size_t previousPolyhedronVectorSize = this->size;
 
     IndexVector* face = NULL;
 
@@ -860,59 +860,59 @@ static int PolygonTreeVector__flip_face(
     }
 
     /**
-     * Add new polygons.
-     * Each new polygon has `nDim+1` vertices.
+     * Add new polyhedrons.
+     * Each new polyhedron has `nDim+1` vertices.
      * - One vertex is `opposite0`.
      * - One vertex in `opposite1`.
      * - `nDim-1` vertices are selected from the `nDim` vertices in `faceToSplit`.
      */
     for (size_t iEx = 0 ; iEx < nVerticesInFace(nDim) ; iEx++) {
-        // Alloc polygon & append PolygonTreeVector
-        PolygonTree* const polygon = PolygonTree__new(nDim);
-        if (!polygon) {
+        // Alloc polyhedron & append PolyhedronTreeVector
+        PolyhedronTree* const polyhedron = PolyhedronTree__new(nDim);
+        if (!polyhedron) {
             status = FAILURE; goto finally;
         }
 
-        status = PolygonTreeVector__append(
-            this, polygon
+        status = PolyhedronTreeVector__append(
+            this, polyhedron
         );
         if (status) {
-            PolygonTree__delete(polygon);
+            PolyhedronTree__delete(polyhedron);
             goto finally;
         }
 
         for (size_t i = 0 ; i < 2 ; i++) {
-            status = PolygonTree__append_child(
-                neighborPairToFlip[i].polygon,
-                polygon
+            status = PolyhedronTree__append_child(
+                neighborPairToFlip[i].polyhedron,
+                polyhedron
             );
             if (status) {
                 goto finally;
             }
         }
 
-        // Set vertices of polygon
+        // Set vertices of polyhedron
         for (size_t i = 0 ; i < (nVerticesInFace(nDim)-1) ; i++) {
             if (i < iEx) {
-                polygon->vertices[i] = IndexVector__elements(faceToFlip)[i+0];
+                polyhedron->vertices[i] = IndexVector__elements(faceToFlip)[i+0];
             } else {
-                polygon->vertices[i] = IndexVector__elements(faceToFlip)[i+1];
+                polyhedron->vertices[i] = IndexVector__elements(faceToFlip)[i+1];
             }
         }
-        polygon->vertices[nVerticesInPolygon(nDim)-2] = neighborPairToFlip[0].opposite;
-        polygon->vertices[nVerticesInPolygon(nDim)-1] = neighborPairToFlip[1].opposite;
+        polyhedron->vertices[nVerticesInPolyhedron(nDim)-2] = neighborPairToFlip[0].opposite;
+        polyhedron->vertices[nVerticesInPolyhedron(nDim)-1] = neighborPairToFlip[1].opposite;
 
-        sort__size_t__Array(polygon->vertices, nVerticesInPolygon(nDim));
+        sort__size_t__Array(polyhedron->vertices, nVerticesInPolyhedron(nDim));
 
         if (verbosity >= Verbosity__debug) {
             char buffer[1024];
 
-            sprintf(buffer, "- - - Append new polygon {");
-            for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+            sprintf(buffer, "- - - Append new polyhedron {");
+            for (size_t i = 0 ; i < nVerticesInPolyhedron(nDim) ; i++) {
                 sprintf(
                     buffer+strlen(buffer), "%lu%s",
-                    polygon->vertices[i]+1,
-                    (i < (nVerticesInPolygon(nDim)-1)) ? ", " : "}"
+                    polyhedron->vertices[i]+1,
+                    (i < (nVerticesInPolyhedron(nDim)-1)) ? ", " : "}"
                 );
             }
 
@@ -920,7 +920,7 @@ static int PolygonTreeVector__flip_face(
         }
     }
 
-    PolygonTree** const newPolygons = PolygonTreeVector__elements(this) + previousPolygonVectorSize;
+    PolyhedronTree** const newPolyhedrons = PolyhedronTreeVector__elements(this) + previousPolyhedronVectorSize;
 
     /**
      * Add new faces inside `neighborPairToFlip`
@@ -947,8 +947,8 @@ static int PolygonTreeVector__flip_face(
 
         // Set to neighborPairMap
         Neighbor neighborPair[2] = {
-            {IndexVector__elements(faceToFlip)[iEx_a], newPolygons[iEx_b]},
-            {IndexVector__elements(faceToFlip)[iEx_b], newPolygons[iEx_a]}
+            {IndexVector__elements(faceToFlip)[iEx_a], newPolyhedrons[iEx_b]},
+            {IndexVector__elements(faceToFlip)[iEx_b], newPolyhedrons[iEx_a]}
         };
 
         status = NeighborPairMap__set(neighborPairMap, face, neighborPair);
@@ -985,7 +985,7 @@ static int PolygonTreeVector__flip_face(
                 face,
                 IndexVector__elements(faceToFlip)[iEx],
                 neighborPairToFlip[1-iNeighbor].opposite,
-                newPolygons[iEx]
+                newPolyhedrons[iEx]
             );
             if (status) {goto finally;}
 
@@ -1010,13 +1010,13 @@ finally:
     return status;
 }
 
-void PolygonTreeVector__divide_at_point(
+void PolyhedronTreeVector__divide_at_point(
     const size_t nDim,
-    PolygonTreeVector* const this,
+    PolyhedronTreeVector* const this,
     const size_t pointToDivide,
     const Points points,
     Points__get_coordinates* const get_coordinates,
-    PolygonTree* const rootPolygon,
+    PolyhedronTree* const rootPolyhedron,
     NeighborPairMap* const neighborPairMap,
     const enum Verbosity verbosity,
     ResourceStack resources
@@ -1033,7 +1033,7 @@ void PolygonTreeVector__divide_at_point(
 
     double* divisionRatio = ResourceStack__ensure_delete_finally(
         resources, FREE,
-        MALLOC(nVerticesInPolygon(nDim) * sizeof(double))
+        MALLOC(nVerticesInPolyhedron(nDim) * sizeof(double))
     );
     if (!divisionRatio) {
         raise_MemoryAllocationError(resources);
@@ -1042,34 +1042,34 @@ void PolygonTreeVector__divide_at_point(
     const double* const coordinatesToDivide
         = get_coordinates(points, pointToDivide);
 
-    PolygonTree* polygonToDivide;
+    PolyhedronTree* polyhedronToDivide;
 
-    status = PolygonTree__find(
+    status = PolyhedronTree__find(
         nDim,
-        rootPolygon,
+        rootPolyhedron,
         coordinatesToDivide,
         points,
         get_coordinates,
-        &polygonToDivide,
+        &polyhedronToDivide,
         divisionRatio
     );
     if (status) {
-        raise_Error(resources, "PolygonTree__find(...) failed");
+        raise_Error(resources, "PolyhedronTree__find(...) failed");
     }
 
-    if (!polygonToDivide) {
-        raise_Error(resources, "can not find polygonToDivide");
+    if (!polyhedronToDivide) {
+        raise_Error(resources, "can not find polyhedronToDivide");
     }
 
     if (verbosity >= Verbosity__debug) {
         char buffer[1024];
 
-        sprintf(buffer, "- Find polygonToDivide {");
-        for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+        sprintf(buffer, "- Find polyhedronToDivide {");
+        for (size_t i = 0 ; i < nVerticesInPolyhedron(nDim) ; i++) {
             sprintf(
                 buffer+strlen(buffer), "%lu%s",
-                polygonToDivide->vertices[i]+1,
-                (i < (nVerticesInPolygon(nDim)-1)) ? ", " : "}"
+                polyhedronToDivide->vertices[i]+1,
+                (i < (nVerticesInPolyhedron(nDim)-1)) ? ", " : "}"
             );
         }
 
@@ -1082,10 +1082,10 @@ void PolygonTreeVector__divide_at_point(
     }
 
     if (!divisionRatio__on_face(nDim, divisionRatio)) {
-        status = PolygonTreeVector__divide_polygon_inside(
+        status = PolyhedronTreeVector__divide_polyhedron_inside(
             nDim,
             this,
-            polygonToDivide,
+            polyhedronToDivide,
             pointToDivide,
             points,
             get_coordinates,
@@ -1094,13 +1094,13 @@ void PolygonTreeVector__divide_at_point(
             verbosity
         );
         if (status) {
-            raise_Error(resources, "PolygonTreeVector__divide_polygon_inside(...) failed");
+            raise_Error(resources, "PolyhedronTreeVector__divide_polyhedron_inside(...) failed");
         }
     } else { // divisionRatio__on_face(...)
-        status = PolygonTreeVector__divide_polygon_by_face(
+        status = PolyhedronTreeVector__divide_polyhedron_by_face(
             nDim,
             this,
-            polygonToDivide,
+            polyhedronToDivide,
             pointToDivide,
             divisionRatio,
             points,
@@ -1110,12 +1110,12 @@ void PolygonTreeVector__divide_at_point(
             verbosity
         );
         if (status) {
-            raise_Error(resources, "PolygonTreeVector__divide_polygon_by_face(...) failed");
+            raise_Error(resources, "PolyhedronTreeVector__divide_polyhedron_by_face(...) failed");
         }
     }
 
     for (size_t i = 0 ; i < (faceVector->size) ; i++) {
-        status = PolygonTreeVector__flip_face(
+        status = PolyhedronTreeVector__flip_face(
             nDim,
             this,
             FaceVector__elements(faceVector)[i],
@@ -1127,7 +1127,7 @@ void PolygonTreeVector__divide_at_point(
             verbosity
         );
         if (status) {
-            raise_Error(resources, "PolygonTreeVector__flip_face(...) failed");
+            raise_Error(resources, "PolyhedronTreeVector__flip_face(...) failed");
         }
     }
 }

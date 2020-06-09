@@ -105,17 +105,17 @@ add_test(
 
 
 add_executable(
-    testPolygonTree__Binary
-    PolygonTree__Binary.c
+    testPolyhedronTree__Binary
+    PolyhedronTree__Binary.c
 )
 target_link_libraries(
-    testPolygonTree__Binary
+    testPolyhedronTree__Binary
     DelaunayTable
 )
 
 add_test(
-    NAME "PolygonTree.Binary"
-    COMMAND $<TARGET_FILE:testPolygonTree__Binary>
+    NAME "PolyhedronTree.Binary"
+    COMMAND $<TARGET_FILE:testPolyhedronTree__Binary>
 )
 
 

@@ -8,11 +8,11 @@
 #include <stddef.h>
 
 
-struct PolygonTree__TAG;
+struct PolyhedronTree__TAG;
 
 typedef struct {
     size_t opposite;
-    struct PolygonTree__TAG* polygon;
+    struct PolyhedronTree__TAG* polyhedron;
 } Neighbor;
 
 
@@ -49,5 +49,5 @@ extern int NeighborPairMap__update_by_opposite(
     const IndexVector* face,
     const size_t opposite_old,
     const size_t opposite_new,
-    struct PolygonTree__TAG* polygon_new
+    struct PolyhedronTree__TAG* polyhedron_new
 );

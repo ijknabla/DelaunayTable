@@ -40,9 +40,9 @@ int main(int argc, char** argv) {
 
     for (size_t iCase = 0 ; iCase < nCase ; iCase++) {
 
-        const double* polygon[nDim+1];
+        const double* polyhedron[nDim+1];
         for (size_t i = 0 ; i < (nDim+1) ; i++) {
-            polygon[i] = (const double*) &coordinates[iCase][i];
+            polyhedron[i] = (const double*) &coordinates[iCase][i];
         }
 
         for (size_t ix = 0 ; ix < N ; ix++)
@@ -55,14 +55,14 @@ int main(int argc, char** argv) {
 
             double ratio[nDim+1] = {};
 
-            assert( divisionRatioFromPolygonVertices(nDim, polygon, point, ratio) == 0 );
+            assert( divisionRatioFromPolyhedronVertices(nDim, polyhedron, point, ratio) == 0 );
 
             double point_ref[nDim];
 
             for (size_t i = 0 ; i < nDim ; i++) {
                 point_ref[i] = 0.0;
                 for (size_t j = 0 ; j < (nDim+1) ; j++) {
-                    point_ref[i] += polygon[j][i] * ratio[j];
+                    point_ref[i] += polyhedron[j][i] * ratio[j];
                 }
             }
 

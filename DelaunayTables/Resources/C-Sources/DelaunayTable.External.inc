@@ -7,7 +7,7 @@
 #include "DelaunayTable.Container.c"
 #include "DelaunayTable.ResourceStack.c"
 #include "DelaunayTable.IndexVector.c"
-#include "DelaunayTable.PolygonTree.c"
+#include "DelaunayTable.PolyhedronTree.c"
 #include "DelaunayTable.Neighbor.c"
 #include "DelaunayTable.IO.c"
 #include "DelaunayTable.c"

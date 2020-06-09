@@ -70,7 +70,7 @@ static void LAPACK__dgemv(
 
 static int calculate_divisionRatioMatrix(
     const size_t nDim,
-    const double* const* const polygon,  // double[nDim+1][nDim]
+    const double* const* const polyhedron,  // double[nDim+1][nDim]
           double*        const matrix    // double[nDim, nDim]
 ) {
     /*
@@ -93,7 +93,7 @@ static int calculate_divisionRatioMatrix(
 
     for (size_t jRow = 0 ; jRow < nDim ; jRow++)
     for (size_t iCol = 0 ; iCol < nDim ; iCol++) {
-        matrix[nDim*jRow+iCol] = polygon[jRow+1][iCol] - polygon[0][iCol];
+        matrix[nDim*jRow+iCol] = polyhedron[jRow+1][iCol] - polyhedron[0][iCol];
     }
 
     LAPACK__dgetrf(
@@ -125,9 +125,9 @@ finally:
     return status;
 }
 
-int divisionRatioFromPolygonVertices(
+int divisionRatioFromPolyhedronVertices(
     const size_t nDim,
-    const double* const* const polygon,  // double[nDim+1][nDim]
+    const double* const* const polyhedron,  // double[nDim+1][nDim]
     const double*        const point,    // double[nDim]
           double*        const ratio     // double[nDim+1]
 ) {
@@ -143,11 +143,11 @@ int divisionRatioFromPolygonVertices(
         status = FAILURE; goto finally;
     }
 
-    status = calculate_divisionRatioMatrix(nDim, polygon, matrix);
+    status = calculate_divisionRatioMatrix(nDim, polyhedron, matrix);
     if (status) {goto finally;}
 
     for (size_t i = 0 ; i < nDim ; i++) {
-        rel_p[i] = point[i] - polygon[0][i];
+        rel_p[i] = point[i] - polyhedron[0][i];
     }
 
     LAPACK__dgemv(
@@ -177,9 +177,9 @@ finally:
     return status;
 }
 
-int insideCircumsphereOfPolygon(
+int insideCircumsphereOfPolyhedron(
     const size_t nDim,
-    const double* const* const polygon,  // double[nDim+1][nDim]
+    const double* const* const polyhedron,  // double[nDim+1][nDim]
     const double*        const point,    // double[nDim]
     bool* const inside
 ) {
@@ -201,7 +201,7 @@ int insideCircumsphereOfPolygon(
 
     /*
      * C             :: Centor of circumsphere
-     * P0, P1, .. Pn :: Vertices of `polygon`
+     * P0, P1, .. Pn :: Vertices of `polyhedron`
      * Q             :: `point` to judge
      *
      *
@@ -216,15 +216,15 @@ int insideCircumsphereOfPolygon(
      *                             (Pn)
      */
 
-    status = calculate_divisionRatioMatrix(nDim, polygon, matrix);
+    status = calculate_divisionRatioMatrix(nDim, polyhedron, matrix);
     if (status) {goto finally;}
 
     for (size_t i = 0 ; i < nDim ; i++) {
         double norm = 0.0;
         for (size_t j = 0 ; j < nDim ; j++) {
             norm += (
-               (polygon[i+1][j] - polygon[0][j]) *
-               (polygon[i+1][j] - polygon[0][j])
+               (polyhedron[i+1][j] - polyhedron[0][j]) *
+               (polyhedron[i+1][j] - polyhedron[0][j])
             );
         }
         normsPer2[i] = norm / 2.0;
@@ -265,7 +265,7 @@ int insideCircumsphereOfPolygon(
 
     double judgement = 0.0;
     for (size_t i = 0 ; i < nDim ; i++) {
-        double q_i = point[i] - polygon[0][i];
+        double q_i = point[i] - polyhedron[0][i];
         double c_i = centor[i];
         judgement += q_i * (q_i - 2*c_i);
     }

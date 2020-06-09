@@ -90,7 +90,7 @@ int NeighborPairMap__update_by_opposite(
     const IndexVector* face,
     const size_t opposite_old,
     const size_t opposite_new,
-    struct PolygonTree__TAG* polygon_new
+    struct PolyhedronTree__TAG* polyhedron_new
 ) {
     Neighbor* neighborPair;
 
@@ -100,10 +100,10 @@ int NeighborPairMap__update_by_opposite(
 
     for (size_t i = 0 ; i < 2 ; i++) {
         if (
-            neighborPair[i].polygon
+            neighborPair[i].polyhedron
             && neighborPair[i].opposite == opposite_old
         ) {
-            neighborPair[i].polygon  = polygon_new;
+            neighborPair[i].polyhedron  = polyhedron_new;
             neighborPair[i].opposite = opposite_new;
             return SUCCESS;
         }

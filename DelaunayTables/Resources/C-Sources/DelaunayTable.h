@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "DelaunayTable.PolygonTree.h"
+#include "DelaunayTable.PolyhedronTree.h"
 
 #include "DelaunayTable.ResourceStack.h"
 
@@ -15,7 +15,7 @@ typedef struct{
     size_t nOut;
     const double* table;
           double* table_extended;
-    PolygonTreeVector* polygonTreeVector;
+    PolyhedronTreeVector* polyhedronTreeVector;
     NeighborPairMap*   neighborPairMap;
 } DelaunayTable;
 
@@ -44,7 +44,7 @@ extern int DelaunayTable__get_value(
 
 /// ## DelaunayTable properties
 static inline size_t tablePointSize     (const DelaunayTable* const this) {return this->nPoints;}
-static inline size_t extendedPointSize  (const DelaunayTable* const this) {return nVerticesInPolygon(this->nIn);}
+static inline size_t extendedPointSize  (const DelaunayTable* const this) {return nVerticesInPolyhedron(this->nIn);}
 static inline size_t allPointSize       (const DelaunayTable* const this) {return tablePointSize(this) + extendedPointSize(this);}
 
 static inline size_t tablePointBegin    (const DelaunayTable* const this) {return 0;}

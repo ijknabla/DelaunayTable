@@ -5,7 +5,7 @@ add_library(
     DelaunayTable.Container.c
     DelaunayTable.ResourceStack.c
     DelaunayTable.IndexVector.c
-    DelaunayTable.PolygonTree.c
+    DelaunayTable.PolyhedronTree.c
     DelaunayTable.Neighbor.c
     DelaunayTable.IO.c
     DelaunayTable.c

@@ -51,20 +51,20 @@ static inline int double__compare(
 
 /// # Number of vertices
 static inline size_t nVerticesInFace   (const size_t nDim) {return nDim  ;}
-static inline size_t nVerticesInPolygon(const size_t nDim) {return nDim+1;}
+static inline size_t nVerticesInPolyhedron(const size_t nDim) {return nDim+1;}
 
 
 /// # Geometry functions
-extern int divisionRatioFromPolygonVertices(
+extern int divisionRatioFromPolyhedronVertices(
     const size_t nDim,
-    const double* const* polygon,  // double[nDim+1][nDim]
+    const double* const* polyhedron,  // double[nDim+1][nDim]
     const double*        point,    // double[nDim]
           double*        ratio     // double[nDim+1]
 );
 
-extern int insideCircumsphereOfPolygon(
+extern int insideCircumsphereOfPolyhedron(
     const size_t nDim,
-    const double* const* polygon,  // double[nDim+1][nDim]
+    const double* const* polyhedron,  // double[nDim+1][nDim]
     const double*        point,    // double[nDim]
     bool* inside
 );
@@ -73,7 +73,7 @@ static inline bool divisionRatio__inside(
     const size_t nDim,
     const double* const divisionRatio
 ) {
-    for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+    for (size_t i = 0 ; i < nVerticesInPolyhedron(nDim) ; i++) {
         if (double__compare(divisionRatio[i], 0.0) < 0) {
             return false;
         }
@@ -85,7 +85,7 @@ static inline bool divisionRatio__on_face(
     const size_t nDim,
     const double* const divisionRatio
 ) {
-    for (size_t i = 0 ; i < nVerticesInPolygon(nDim) ; i++) {
+    for (size_t i = 0 ; i < nVerticesInPolyhedron(nDim) ; i++) {
         const int ratio = double__compare(divisionRatio[i], 0.0);
         if (ratio <  0) {return false;}
         if (ratio == 0) {return true;}
