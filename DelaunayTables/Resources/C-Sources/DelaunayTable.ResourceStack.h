@@ -41,18 +41,6 @@ extern void ResourceStack__exit(
 );
 
 
-extern Resource ResourceStack__ensure_delete_finally(
-    const ResourceStack resources,
-    Resource__deleter* deleter,
-    const Resource resource
-);
-
-extern Resource ResourceStack__ensure_delete_on_error(
-    const ResourceStack resources,
-    Resource__deleter* deleter,
-    const Resource resource
-);
-
 extern Resource ResourceStack__ensure_delete_finally__impl__(
     ResourceStack      this,
     Resource           resource,
@@ -92,6 +80,7 @@ extern Resource ResourceStack__ensure_delete_on_error__impl__(
         __LINE__                        \
     )                                   \
 )
+
 
 extern void ResourceStack__raise_error(
     const ResourceStack resources

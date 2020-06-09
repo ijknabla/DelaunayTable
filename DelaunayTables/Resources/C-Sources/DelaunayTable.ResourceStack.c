@@ -166,53 +166,6 @@ void ResourceStack__exit(
 }
 
 
-Resource ResourceStack__ensure_delete_finally(
-    const ResourceStack this,
-    Resource__deleter* const deleter,
-    const Resource resource
-) {
-    if (!resource) {
-        return NULL;
-    }
-
-    const ResourceAndDeleter resourceAndDeleter = {resource, deleter};
-    int status = ResourcesAndDeleters__append(this->delete_finally, &resourceAndDeleter);
-    if (status) {
-        if (deleter) {
-            deleter(resource);
-        }
-
-        ResourceStack__raise_error(this);
-        raise_FatalError("failed to append new resource to ResourceStack");
-    }
-
-    return resource;
-}
-
-
-Resource ResourceStack__ensure_delete_on_error(
-    const ResourceStack this,
-    Resource__deleter* const deleter,
-    const Resource resource
-) {
-    if (!resource) {
-        return NULL;
-    }
-
-    const ResourceAndDeleter resourceAndDeleter = {resource, deleter};
-    int status = ResourcesAndDeleters__append(this->delete_on_error, &resourceAndDeleter);
-    if (status) {
-        if (deleter) {
-            deleter(resource);
-        }
-
-        ResourceStack__raise_error(this);
-        raise_FatalError("failed to append new resource to ResourceStack");
-    }
-
-    return resource;
-}
-
 Resource ResourceStack__ensure_delete_finally__impl__(
     ResourceStack      this,
     Resource           resource,
