@@ -35,7 +35,7 @@ static const double table[] = {
 int main(int argc, char** argv) {
     ResourceStack resources = ResourceStack__new();
 
-    DelaunayTable* delaunayTable = ResourceStack__ensure_delete_finally2(
+    DelaunayTable* delaunayTable = ResourceStack__ensure_delete_finally(
         resources,
         DelaunayTable__from_buffer(nPoints, nIn, nOut, table, Verbosity__detail, resources),
         DelaunayTable__delete

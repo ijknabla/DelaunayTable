@@ -59,7 +59,7 @@ extern Resource ResourceStack__ensure_delete_on_error__impl__(
     const int   line
 );
 
-#define ResourceStack__ensure_delete_finally2(resources, expr, deleter) ( \
+#define ResourceStack__ensure_delete_finally(resources, expr, deleter) ( \
     ResourceStack__ensure_delete_finally__impl__( \
         (resources),                    \
         (Resource)           (expr),    \
@@ -70,7 +70,7 @@ extern Resource ResourceStack__ensure_delete_on_error__impl__(
     )                                   \
 )
 
-#define ResourceStack__ensure_delete_on_error2(resources, expr, deleter) ( \
+#define ResourceStack__ensure_delete_on_error(resources, expr, deleter) ( \
     ResourceStack__ensure_delete_on_error__impl__( \
         (resources),                    \
         (Resource)           (expr),    \

@@ -41,7 +41,7 @@ DelaunayTable* DelaunayTable__from_buffer(
 ) {
     ResourceStack__enter(resources);
 
-    DelaunayTable* this = ResourceStack__ensure_delete_on_error2(
+    DelaunayTable* this = ResourceStack__ensure_delete_on_error(
         resources,
         MALLOC(sizeof(DelaunayTable)),
         FREE
@@ -57,19 +57,19 @@ DelaunayTable* DelaunayTable__from_buffer(
     this->polygonTreeVector = NULL;
     this->neighborPairMap   = NULL;
 
-    this->table_extended = ResourceStack__ensure_delete_on_error2(
+    this->table_extended = ResourceStack__ensure_delete_on_error(
         resources,
         MALLOC(nVerticesInPolygon(nIn) * nIn * sizeof(double)),
         FREE
     );
 
-    this->polygonTreeVector = ResourceStack__ensure_delete_on_error2(
+    this->polygonTreeVector = ResourceStack__ensure_delete_on_error(
         resources,
         PolygonTreeVector__new(0),
         PolygonTreeVector__delete
     );
 
-    this->neighborPairMap = ResourceStack__ensure_delete_on_error2(
+    this->neighborPairMap = ResourceStack__ensure_delete_on_error(
         resources,
         NeighborPairMap__new(),
         NeighborPairMap__delete
@@ -244,7 +244,7 @@ static void DelaunayTable__delaunay_divide(
 
     const size_t nDim = this->nIn;
 
-    IndexVector* face = ResourceStack__ensure_delete_finally2(
+    IndexVector* face = ResourceStack__ensure_delete_finally(
         resources,
         IndexVector__new(nVerticesInFace(nDim)),
         IndexVector__delete

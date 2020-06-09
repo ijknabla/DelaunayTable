@@ -1023,13 +1023,13 @@ void PolygonTreeVector__divide_at_point(
 ) {
     int status = SUCCESS;
 
-    FaceVector* faceVector = ResourceStack__ensure_delete_finally2(
+    FaceVector* faceVector = ResourceStack__ensure_delete_finally(
         resources,
         FaceVector__new(0),
         FaceVector__delete
     );
 
-    double* divisionRatio = ResourceStack__ensure_delete_finally2(
+    double* divisionRatio = ResourceStack__ensure_delete_finally(
         resources,
         MALLOC(nVerticesInPolygon(nDim) * sizeof(double)),
         FREE
