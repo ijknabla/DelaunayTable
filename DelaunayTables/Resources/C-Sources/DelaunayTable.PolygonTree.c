@@ -1029,6 +1029,8 @@ void PolygonTreeVector__divide_at_point(
     const enum Verbosity verbosity,
     ResourceStack resources
 ) {
+    ResourceStack__enter(resources);
+
     int status = SUCCESS;
 
     FaceVector* faceVector = ResourceStack__ensure_delete_finally(
@@ -1134,4 +1136,6 @@ void PolygonTreeVector__divide_at_point(
             raise_Error(resources, "PolygonTreeVector__flip_face(...) failed");
         }
     }
+
+    ResourceStack__exit(resources);
 }
