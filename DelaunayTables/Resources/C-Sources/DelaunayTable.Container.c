@@ -152,13 +152,13 @@ static inline bool Map__Pair__removed(
 
 static Map__Pair* HashMap__find_pair(
     const size_t capacity,
-    Map__Pair* const pairs,
-    const Map__key key,
+    Map__Pair*  const pairs,
+    ConstObject const key,
     const bool skip_removed,
-    Map__key__hash_function* const key__hash,
-    Map__key__equality_function* const key__equality
+    Object__hash  const key_hash,
+    Object__equal const key_equal
 ) {
-    size_t hash = key__hash(key);
+    size_t hash = key_hash(key);
 
     for (size_t i = 0 ; i < capacity ; i++) {
         const size_t index = (hash + i) % capacity;
@@ -167,7 +167,7 @@ static Map__Pair* HashMap__find_pair(
         if (skip_removed && Map__Pair__removed(pair)) {continue;}
 
         if (Map__Pair__empty(pair)) {return pair;}
-        if (key__equality(key, pair->key)) {return pair;}
+        if (key_equal(key, pair->key)) {return pair;}
     }
     return NULL;
 }
@@ -175,8 +175,8 @@ static Map__Pair* HashMap__find_pair(
 int HashMap__reserve(
     HashMap* const this,
     const size_t capacity,
-    Map__key__hash_function* const key__hash,
-    Map__key__equality_function* const key__equality
+    Object__hash  const key_hash,
+    Object__equal const key_equality
 ) {
     if ( capacity < (this->size) ) {
         return FAILURE;
@@ -201,8 +201,8 @@ int HashMap__reserve(
             new_pairs,
             old_pair->key,
             true,  // skip_removed
-            key__hash,
-            key__equality
+            key_hash,
+            key_equality
         );
 
         new_pair->key   = old_pair->key;
@@ -246,17 +246,17 @@ error:
 
 void HashMap__clear(
     HashMap* const this,
-    Map__key__delete_function* const key__delete,
-    Map__value__delete_function* const value__delete
+    Object__delete const key_delete,
+    Object__delete const value_delete
 ) {
     for (size_t i = 0 ; i < (this->capacity) ; i++) {
         Map__Pair* const pair = &this->pairs[i];
         if (!Map__Pair__empty(pair)) {
-            if (key__delete && pair->key) {
-                key__delete(pair->key);
+            if (key_delete && pair->key) {
+                key_delete(pair->key);
             }
-            if (value__delete && pair->value) {
-                value__delete(pair->value);
+            if (value_delete && pair->value) {
+                value_delete(pair->value);
             }
         }
 
@@ -271,13 +271,13 @@ void HashMap__clear(
 
 void HashMap__delete(
     HashMap* const this,
-    Map__key__delete_function* const key__delete,
-    Map__value__delete_function* const value__delete
+    Object__delete const key_delete,
+    Object__delete const value_delete
 ) {
     HashMap__clear(
         this,
-        key__delete,
-        value__delete
+        key_delete,
+        value_delete
     );
 
     FREE(this->pairs);
@@ -286,18 +286,18 @@ void HashMap__delete(
 
 bool HashMap__get(
     const HashMap* const this,
-    const Map__key key,
-    Map__value* const value,
-    Map__key__hash_function* const key__hash,
-    Map__key__equality_function* const key__equality
+    ConstObject  const key,
+         Object* const value,
+    Object__hash  const key_hash,
+    Object__equal const key_equal
 ) {
     Map__Pair* pair = HashMap__find_pair(
         this->capacity,
         this->pairs,
         key,
         true,  // skip_removed
-        key__hash,
-        key__equality
+        key_hash,
+        key_equal
     );
 
     if (!Map__Pair__empty(pair)) {
@@ -311,14 +311,14 @@ bool HashMap__get(
 
 int HashMap__set(
     HashMap* const this,
-    const Map__key key,
-    const Map__value value,
-    Map__key__copy_function* const key__copy,
-    Map__key__delete_function* const key__delete,
-    Map__key__hash_function* const key__hash,
-    Map__key__equality_function* const key__equality,
-    Map__value__copy_function* const value__copy,
-    Map__value__delete_function* const value__delete
+    ConstObject const key,
+    ConstObject const value,
+    Object__copy   const key_copy,
+    Object__delete const key_delete,
+    Object__hash   const key_hash,
+    Object__equal  const key_equal,
+    Object__copy   const value_copy,
+    Object__delete const value_delete
 ) {
     Map__Pair* pair;
 
@@ -331,8 +331,8 @@ int HashMap__set(
         if (HashMap__reserve(
             this,
             new_capacity,
-            key__hash,
-            key__equality
+            key_hash,
+            key_equal
         )) {
             return FAILURE;
         }
@@ -343,8 +343,8 @@ int HashMap__set(
         this->pairs,
         key,
         true,  // skip_removed
-        key__hash,
-        key__equality
+        key_hash,
+        key_equal
     );
     if (Map__Pair__empty(pair)) {
         pair = HashMap__find_pair(
@@ -352,39 +352,39 @@ int HashMap__set(
             this->pairs,
             key,
             false,  // not skip_removed
-            key__hash,
-            key__equality
+            key_hash,
+            key_equal
         );
     }
 
     // try
     const bool key_already_exists = !Map__Pair__empty(pair);
     if (!key_already_exists) {
-        if (key__copy) {
-            pair->key = key__copy(key);
+        if (key_copy) {
+            pair->key = key_copy(key);
             if (!pair->key) {
                 goto error;
             }
         } else {
-            pair->key = key;
+            pair->key = (Object) key;
         }
     }
 
-    Map__value new_value;
-    if (value__copy && value) {
-        new_value = value__copy(value);
+    Object new_value;
+    if (value_copy && value) {
+        new_value = value_copy(value);
         if (!new_value) {
             goto error;
         }
     } else {
-        new_value = value;
+        new_value = (Object) value;
     }
     // end try
 
     this->size++;
 
-    if (value__delete && key_already_exists && pair->value) {
-        value__delete(pair->value);
+    if (value_delete && key_already_exists && pair->value) {
+        value_delete(pair->value);
     }
     pair->value = new_value;
 
@@ -393,8 +393,8 @@ int HashMap__set(
 error:
 
     if (!key_already_exists) {
-        if (key__delete && pair->key) {
-            key__delete(pair->key);
+        if (key_delete && pair->key) {
+            key_delete(pair->key);
         }
         pair->key = NULL;
     }
@@ -404,30 +404,30 @@ error:
 
 bool HashMap__remove(
     HashMap* this,
-    const Map__key key,
-    Map__key__delete_function* key__delete,
-    Map__key__hash_function* key__hash,
-    Map__key__equality_function* key__equality,
-    Map__value__delete_function* value__delete
+    ConstObject const key,
+    Object__delete const key_delete,
+    Object__hash   const key_hash,
+    Object__equal  const key_equal,
+    Object__delete const value_delete
 ) {
     Map__Pair* const pair = HashMap__find_pair(
         this->capacity,
         this->pairs,
         key,
         true,  // skip_removed
-        key__hash,
-        key__equality
+        key_hash,
+        key_equal
     );
 
     if (Map__Pair__empty(pair)) {
         return false;
     }
 
-    if (key__delete && pair->key) {
-        key__delete(pair->key);
+    if (key_delete && pair->key) {
+        key_delete(pair->key);
     }
-    if (value__delete && pair->value) {
-        value__delete(pair->value);
+    if (value_delete && pair->value) {
+        value_delete(pair->value);
     }
 
     pair->key = NULL;
