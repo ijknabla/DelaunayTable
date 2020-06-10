@@ -34,8 +34,8 @@ void NeighborPairMap__delete(
 ) {
     HashMap__delete(
         this,
-        (Map__key__delete_function*)   IndexVector__delete,
-        (Map__value__delete_function*) NeighborPair__delete
+        (Object__delete) IndexVector__delete,
+        (Object__delete) NeighborPair__delete
     );
 }
 
@@ -46,10 +46,10 @@ bool NeighborPairMap__get(
 ) {
     return HashMap__get(
         this,
-        (Map__key)    face,
-        (Map__value*) neighborPair,
-        (Map__key__hash_function*)     IndexVector__hash,
-        (Map__key__equality_function*) IndexVector__equality
+        face,
+        (Object*) neighborPair,
+        (Object__hash)  IndexVector__hash,
+        (Object__equal) IndexVector__equality
     );
 }
 
@@ -60,14 +60,14 @@ int NeighborPairMap__set(
 ) {
     return HashMap__set(
         this,
-        (Map__key)   face,
-        (Map__value) neighborPair,
-        (Map__key__copy_function*)     IndexVector__copy,
-        (Map__key__delete_function*)   IndexVector__delete,
-        (Map__key__hash_function*)     IndexVector__hash,
-        (Map__key__equality_function*) IndexVector__equality,
-        (Map__value__copy_function*)   NeighborPair__copy,
-        (Map__value__delete_function*) NeighborPair__delete
+        face,
+        neighborPair,
+        (Object__copy)   IndexVector__copy,
+        (Object__delete) IndexVector__delete,
+        (Object__hash)   IndexVector__hash,
+        (Object__equal)  IndexVector__equality,
+        (Object__copy)   NeighborPair__copy,
+        (Object__delete) NeighborPair__delete
     );
 }
 
@@ -77,11 +77,11 @@ bool NeighborPairMap__remove(
 ) {
     return HashMap__remove(
         this,
-        (Map__key) face,
-        (Map__key__delete_function*)   IndexVector__delete,
-        (Map__key__hash_function*)     IndexVector__hash,
-        (Map__key__equality_function*) IndexVector__equality,
-        (Map__value__delete_function*) NeighborPair__delete
+        face,
+        (Object__delete) IndexVector__delete,
+        (Object__hash)   IndexVector__hash,
+        (Object__equal)  IndexVector__equality,
+        (Object__delete) NeighborPair__delete
     );
 }
 
