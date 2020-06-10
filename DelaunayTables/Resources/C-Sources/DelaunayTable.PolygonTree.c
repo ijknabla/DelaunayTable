@@ -372,7 +372,7 @@ static int PolygonTreeVector__divide_polygon_inside(
         }
         polygon->vertices[nVerticesInPolygon(nDim)-1] = pointToDivide;
 
-        sort__size_t__Array(polygon->vertices, nVerticesInPolygon(nDim));
+        PolygonTree__sort_vertices(nDim, polygon);
 
         if (verbosity >= Verbosity__debug) {
             char buffer[1024];
@@ -616,7 +616,7 @@ static int PolygonTreeVector__divide_polygon_by_face(
             }
             polygon->vertices[nVerticesInPolygon(nDim)-1] = pointToDivide;
 
-            sort__size_t__Array(polygon->vertices, nVerticesInPolygon(nDim));
+            PolygonTree__sort_vertices(nDim, polygon);
 
             if (verbosity >= Verbosity__debug) {
                 char buffer[1024];
@@ -910,7 +910,7 @@ static int PolygonTreeVector__flip_face(
         polygon->vertices[nVerticesInPolygon(nDim)-2] = neighborPairToFlip[0].opposite;
         polygon->vertices[nVerticesInPolygon(nDim)-1] = neighborPairToFlip[1].opposite;
 
-        sort__size_t__Array(polygon->vertices, nVerticesInPolygon(nDim));
+        PolygonTree__sort_vertices(nDim, polygon);
 
         if (verbosity >= Verbosity__debug) {
             char buffer[1024];
