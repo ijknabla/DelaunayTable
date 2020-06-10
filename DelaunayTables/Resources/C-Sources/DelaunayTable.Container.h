@@ -32,12 +32,6 @@ typedef bool (*Object__equal) (
 );
 
 
-/** # Sequcence
- * basic data types
- */
-typedef void* Sequence__element;
-
-
 /** # Vector
  * variable size array
  */
@@ -64,7 +58,7 @@ extern void Vector__delete(
 
 extern int Vector__append(
     Vector* this,
-    const Sequence__element element,
+    ConstObject element,
     const size_t sizeofElement
 );
 

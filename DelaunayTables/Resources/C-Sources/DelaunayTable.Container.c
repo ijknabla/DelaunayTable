@@ -107,7 +107,7 @@ void Vector__delete(
 
 extern int Vector__append(
     Vector* const this,
-    const Sequence__element element,
+    ConstObject element,
     const size_t sizeofElement
 ) {
     int status = SUCCESS;
