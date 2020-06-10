@@ -26,7 +26,7 @@ static int ULongVector__append(
 ) {
     return Vector__append(
         this,
-        (Sequence__element) &l,
+        (ConstObject) &l,
         sizeof(unsigned long)
     );
 }

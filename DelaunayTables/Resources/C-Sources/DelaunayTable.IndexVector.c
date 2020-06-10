@@ -46,7 +46,7 @@ int IndexVector__append(
 ) {
     return Vector__append(
         this,
-        (Sequence__element) &index,
+        (ConstObject) &index,
         sizeof(size_t)
     );
 }

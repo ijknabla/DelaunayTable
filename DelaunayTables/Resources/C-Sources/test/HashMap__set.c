@@ -28,7 +28,7 @@ size_t size_t__hash(
     return *size;
 }
 
-bool size_t__equality(
+bool size_t__equal(
     const size_t* const size0,
     const size_t* const size1
 ) {
@@ -40,8 +40,8 @@ static void TestHashMap__clear(
 ) {
     HashMap__clear(
         this,
-        &size_t__delete,
-        &size_t__delete
+        size_t__delete,
+        size_t__delete
     );
 }
 
@@ -50,8 +50,8 @@ static void TestHashMap__delete(
 ) {
     HashMap__delete(
         this,
-        &size_t__delete,
-        &size_t__delete
+        size_t__delete,
+        size_t__delete
     );
 }
 
@@ -63,10 +63,10 @@ static bool TestHashMap__get(
     size_t* value_;
     bool result = HashMap__get(
         this,
-        (Map__key) &key,
-        (Map__value*) &value_,
-        (Map__key__hash_function*) size_t__hash,
-        (Map__key__equality_function*) size_t__equality
+        &key,
+        (Object*) &value_,
+        (Object__hash)  size_t__hash,
+        (Object__equal) size_t__equal
     );
 
     if (result) {
@@ -85,14 +85,14 @@ static int TestHashMap__set(
 ) {
     return HashMap__set(
         this,
-        (Map__key) &key,
-        (Map__value) &value,
-        (Map__key__copy_function*) size_t__copy,
-        (Map__key__delete_function*) size_t__delete,
-        (Map__key__hash_function*) size_t__hash,
-        (Map__key__equality_function*) size_t__equality,
-        (Map__value__copy_function*) size_t__copy,
-        (Map__value__delete_function*) size_t__delete
+        &key,
+        &value,
+        (Object__copy)   size_t__copy,
+        (Object__delete) size_t__delete,
+        (Object__hash)   size_t__hash,
+        (Object__equal)  size_t__equal,
+        (Object__copy)   size_t__copy,
+        (Object__delete) size_t__delete
     );
 }
 
@@ -102,11 +102,11 @@ static bool TestHashMap__remove(
 ) {
     return HashMap__remove(
         this,
-        (Map__key) &key,
-        (Map__key__delete_function*) size_t__delete,
-        (Map__key__hash_function*) size_t__hash,
-        (Map__key__equality_function*) size_t__equality,
-        (Map__value__delete_function*) size_t__delete
+        (Object) &key,
+        (Object__delete) size_t__delete,
+        (Object__hash)   size_t__hash,
+        (Object__equal)  size_t__equal,
+        (Object__delete) size_t__delete
     );
 }
 
