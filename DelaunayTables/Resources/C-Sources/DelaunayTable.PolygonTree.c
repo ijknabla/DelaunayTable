@@ -413,7 +413,7 @@ static int PolygonTreeVector__divide_polygon_inside(
         }
         IndexVector__elements(face)[nVerticesInFace(nDim)-1] = pointToDivide;
 
-        sort__size_t__Array(IndexVector__elements(face), nVerticesInFace(nDim));
+        IndexVector__sort(face);
 
         // Set to neighborPairMap
         Neighbor neighborPair[2] = {
@@ -951,7 +951,7 @@ static int PolygonTreeVector__flip_face(
         IndexVector__elements(face)[nVerticesInFace(nDim)-2] = neighborPairToFlip[0].opposite;
         IndexVector__elements(face)[nVerticesInFace(nDim)-1] = neighborPairToFlip[1].opposite;
 
-        sort__size_t__Array(IndexVector__elements(face), nVerticesInFace(nDim));
+        IndexVector__sort(face);
 
         // Set to neighborPairMap
         Neighbor neighborPair[2] = {
@@ -985,7 +985,7 @@ static int PolygonTreeVector__flip_face(
             IndexVector__elements(face)[nVerticesInFace(nDim)-1]
                 = neighborPairToFlip[iNeighbor].opposite;
 
-            sort__size_t__Array(IndexVector__elements(face), nVerticesInFace(nDim));
+            IndexVector__sort(face);
 
             // Update neighborPairMap
             status = NeighborPairMap__update_by_opposite(
