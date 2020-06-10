@@ -61,7 +61,7 @@ void IndexVector__sort(
     );
 }
 
-bool IndexVector__equality(
+bool IndexVector__equal(
     const IndexVector* const v0,
     const IndexVector* const v1
 ) {

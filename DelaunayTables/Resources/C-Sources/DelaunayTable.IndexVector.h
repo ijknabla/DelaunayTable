@@ -56,7 +56,7 @@ extern void IndexVector__sort(
     IndexVector* this
 );
 
-extern bool IndexVector__equality(
+extern bool IndexVector__equal(
     const IndexVector* v0,
     const IndexVector* v1
 );

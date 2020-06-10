@@ -49,7 +49,7 @@ bool NeighborPairMap__get(
         face,
         (Object*) neighborPair,
         (Object__hash)  IndexVector__hash,
-        (Object__equal) IndexVector__equality
+        (Object__equal) IndexVector__equal
     );
 }
 
@@ -65,7 +65,7 @@ int NeighborPairMap__set(
         (Object__copy)   IndexVector__copy,
         (Object__delete) IndexVector__delete,
         (Object__hash)   IndexVector__hash,
-        (Object__equal)  IndexVector__equality,
+        (Object__equal)  IndexVector__equal,
         (Object__copy)   NeighborPair__copy,
         (Object__delete) NeighborPair__delete
     );
@@ -80,7 +80,7 @@ bool NeighborPairMap__remove(
         face,
         (Object__delete) IndexVector__delete,
         (Object__hash)   IndexVector__hash,
-        (Object__equal)  IndexVector__equality,
+        (Object__equal)  IndexVector__equal,
         (Object__delete) NeighborPair__delete
     );
 }
