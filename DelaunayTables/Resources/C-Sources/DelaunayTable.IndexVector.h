@@ -52,6 +52,10 @@ extern int IndexVector__append(
     const size_t index
 );
 
+extern void IndexVector__sort(
+    IndexVector* this
+);
+
 extern bool IndexVector__equality(
     const IndexVector* v0,
     const IndexVector* v1
@@ -65,13 +69,4 @@ static inline size_t* IndexVector__elements(
     const IndexVector* const this
 ) {
     return Vector__elements(this, size_t);
-}
-
-static inline void IndexVector__sort(
-    IndexVector* const this
-) {
-    sort__size_t__Array(
-        IndexVector__elements(this),
-        this->size
-    );
 }

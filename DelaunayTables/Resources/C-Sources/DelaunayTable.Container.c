@@ -2,6 +2,8 @@
 #include "DelaunayTable.Container.h"
 
 #include <string.h>
+#include <stdlib.h>
+
 
 // # capacity assumption
 static const size_t default_capacity = 1;
@@ -133,6 +135,14 @@ extern int Vector__append(
     );
 
     return status;
+}
+
+void Vector__sort(
+    Vector* this,
+    Object__compare element_compare,
+    const size_t sizeofElement
+) {
+    qsort(this->data, this->size, sizeofElement, element_compare);
 }
 
 

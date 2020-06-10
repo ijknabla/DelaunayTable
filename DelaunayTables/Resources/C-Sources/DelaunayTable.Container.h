@@ -31,6 +31,11 @@ typedef bool (*Object__equal) (
     ConstObject
 );
 
+typedef int (*Object__compare) (
+    ConstObject,
+    ConstObject
+);
+
 
 /** # Vector
  * variable size array
@@ -59,6 +64,12 @@ extern void Vector__delete(
 extern int Vector__append(
     Vector* this,
     ConstObject element,
+    const size_t sizeofElement
+);
+
+extern void Vector__sort(
+    Vector* this,
+    Object__compare element_compare,
     const size_t sizeofElement
 );
 
