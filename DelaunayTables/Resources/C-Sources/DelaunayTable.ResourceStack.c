@@ -57,7 +57,7 @@ static int ResourcesAndDeleters__append(
 ) {
     return Vector__append(
         this,
-        (Sequence__element) element,
+        (ConstObject) element,
         sizeof(ResourceAndDeleter)
     );
 }
@@ -166,13 +166,13 @@ void ResourceStack__exit(
 }
 
 
-Resource ResourceStack__ensure_delete_finally__impl__(
-    ResourceStack      this,
-    Resource           resource,
-    Resource__deleter* deleter,
-    const char* resource_expr,
-    const char* file,
-    const int   line
+Object ResourceStack__ensure_delete_finally__impl__(
+    ResourceStack  const this,
+    Object         const resource,
+    Object__delete const deleter,
+    const char*    const resource_expr,
+    const char*    const file,
+    const int            line
 ) {
     if (!resource) {
         raise_ResourceAllocationFailed(this, resource_expr, file, line);
@@ -192,13 +192,13 @@ Resource ResourceStack__ensure_delete_finally__impl__(
     return resource;
 }
 
-Resource ResourceStack__ensure_delete_on_error__impl__(
-    ResourceStack      this,
-    Resource           resource,
-    Resource__deleter* deleter,
-    const char* resource_expr,
-    const char* file,
-    const int   line
+Object ResourceStack__ensure_delete_on_error__impl__(
+    ResourceStack  const this,
+    Object         const resource,
+    Object__delete const deleter,
+    const char*    const resource_expr,
+    const char*    const file,
+    const int            line
 ) {
     if (!resource) {
         raise_ResourceAllocationFailed(this, resource_expr, file, line);
