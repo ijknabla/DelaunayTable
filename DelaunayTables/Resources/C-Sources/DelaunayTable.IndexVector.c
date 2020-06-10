@@ -51,6 +51,16 @@ int IndexVector__append(
     );
 }
 
+void IndexVector__sort(
+    IndexVector* const this
+) {
+    Vector__sort(
+        this,
+        compare__size_t,
+        sizeof(size_t)
+    );
+}
+
 bool IndexVector__equality(
     const IndexVector* const v0,
     const IndexVector* const v1
