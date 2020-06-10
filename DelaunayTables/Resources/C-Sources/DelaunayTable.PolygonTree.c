@@ -5,6 +5,7 @@
 #include "DelaunayTable.IndexVector.h"
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 
 /// # FaceVector
@@ -87,6 +88,13 @@ void PolygonTree__delete(
     FREE(this->vertices);
     PolygonTreeVector__delete(this->children);
     FREE(this);
+}
+
+void PolygonTree__sort_vertices(
+    const size_t nDim,
+    PolygonTree* const this
+) {
+    sort__size_t__Array(this->vertices, nVerticesInPolygon(nDim));
 }
 
 int PolygonTree__append_child(

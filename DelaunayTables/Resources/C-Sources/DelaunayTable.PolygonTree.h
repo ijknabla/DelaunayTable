@@ -32,6 +32,11 @@ static inline PolygonTree** PolygonTree__children(
     const PolygonTree* this
 );
 
+extern void PolygonTree__sort_vertices(
+    const size_t nDim,
+    PolygonTree* this
+);
+
 extern int PolygonTree__append_child(
     PolygonTree* this,
     PolygonTree* child
