@@ -6,6 +6,31 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+/** # Object & API
+ * - element of sequence
+ * - key of map
+ * - value of map
+ */
+typedef       void* Object;
+typedef const void* ConstObject;
+
+typedef Object (*Object__copy) (
+    ConstObject
+);
+
+typedef void (*Object__delete) (
+    Object
+);
+
+typedef size_t (*Object__hash) (
+    ConstObject
+);
+
+typedef bool (*Object__equal) (
+    ConstObject,
+    ConstObject
+);
+
 
 /** # Sequcence
  * basic data types
